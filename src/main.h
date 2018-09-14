@@ -12,9 +12,7 @@
 //*******LIBRARY**********
 // Open MP should be installed (http://openmp.org/wp/)
 // -lm and -fopenmp flags must be used for compilation
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "io.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -22,12 +20,12 @@
 #include <time.h>
 #include <omp.h>
 
-//*******PREÊPROCESSORÊVARIABLES**********
+//*******PREï¿½PROCESSORï¿½VARIABLES**********
 // The preprocessor variables allow to change parameters of the model. If non accepted values are entered a fatal error may occur, values are not verified.
 #define Z 3400//height of the table
 #define T 10001//10001 //width of the table
 #define S 1500 //Length of the spin up in hYr
-#define DIR_PATH "For_daniel"//Directory to store data file into
+#define DIR_PATH "output"//Directory to store data file into
 #define SAVE_TYPE "VECTOR"//MATRIX or VECTOR to save age and temperature
 #define TYPE "CN"//Scheme used, values can be CN or expl
 #define rhoSnow 350 //Value of the snow density used in the computation of the density profile
@@ -90,23 +88,7 @@
 
 
 
-//*******FUNCTIONSÊPROTOTYPE***********
-
-//*************File management functions*************
-
-void readTable(double* table,char* fileName);
-// Read the indicated data file and store it to the given table. Size is not controlled, to avoid error the table should be large enough
-
-void saveTable(double *table, char *name, char* path, int tabSize);
-// Save general 1D table containing doubles.
-
-void save2DTable(double **table, char *name, char* path, int nRow, int nCol, int skipR, int skipC, int startC);
-// Save general 2D table containing doubles, skipR and skipC allow to save respectively only every "skipR" lines and every "skipC" column, startC gives the startig column to be saved
-
-void save2DTable_top(double **table, char *name, char* path, double* thickness, int nrow, int ncol);
-// TO DO
-
-
+//*******FUNCTIONS PROTOTYPE***********
 
 //*************Computational functions*************
 
@@ -156,152 +138,7 @@ void tempScale(double* told, double thickness,double thicknessFuture,double tsur
 
 
 
-//*************DEFINTIONÊOFÊTHEÊFUNCTIONS*************
-
-//*************File management functions*************
-
-void readTable(double* table,char* fileName)
-{
-    // Read a table from the file called "filename" and store it into the double table called "table". Table should be 1D. "filename" can contain directory path.
-    FILE *fp;
-    int li=0;
-    double a=0;
-    if((fp=fopen(fileName, "r"))==NULL)
-    {
-        printf("Cannot open file: %s\n",fileName);
-        exit(0);
-    }
-    else
-    {
-        printf("File: %s opened in reading mode\n",fileName);
-        while(fscanf(fp,"%lf",&a)==1)
-        {
-            table[li]=a;
-            li++;
-        }
-        if(fclose(fp)==0)
-        {
-            printf("File imported successfully (%d data) and closed: %s \n\n",li,fileName);
-        }
-        else
-        {
-            printf("Not able to close: %s \n\n",fileName);
-        }
-    }
-}
-
-
-void saveTable(double *table,char *name, char* path,int tabSize)
-{
-    // Read the 1D double table called "table" and store it a file called "filename".  Table should be tab delimited. "filename" can contain directory path. The default path is a folder called "export". The table size should be passed as parameter.
-    FILE *fp;
-    int li=0;
-    char full_path[180]="";
-    sprintf(full_path,"%s/%s",path,name);
-    if((fp=fopen(full_path, "w+"))==NULL)
-    {
-        printf("Cannot open file: %s\n",full_path);
-    }
-    else
-    {
-        printf("File oppened:%s\n...writing...\n",full_path);
-        for (li=0; li<tabSize; li++)
-        {
-            fprintf(fp,"%f \n",table[li]);
-        }
-        fclose(fp);
-        printf("File closed: %s \n\n",full_path);
-    }
-}
-
-void save2DTable(double **table,char *name, char* path,int nRow,int nCol, int skipR, int skipC,int startC)
-{
-    // Read the 2D double table called "table" and store it a tab delimited file called "filename". The default path is a folder called "export". The table dimensions should be passed as parameter.
-    FILE *fp;
-    int li=0;
-    int co=0;
-    char full_path[180]="";
-    sprintf(full_path,"%s/%s",path,name);
-    if((fp=fopen(full_path, "w+"))==NULL)
-    {
-        printf("Cannot open file: %s\n",full_path);
-    }
-    else
-    {
-        printf("File oppened:%s\n...writing...\n",full_path);
-        for (li=0; li<nRow; li+=skipR)
-        {
-            for (co=startC; co<nCol; co+=skipC)
-            {
-                if(co!=startC)
-                {
-                    fprintf(fp,"\t");
-                }
-                if(table[li][co]>0)
-                {
-                    fprintf(fp,"%f",table[li][co]);
-                }
-                else
-                {
-                    fprintf(fp,"NaN");
-                }
-            }
-            fprintf(fp,"\n");
-        }
-        fclose(fp);
-        printf("File closed: %s \n\n",full_path);
-    }
-}
-
-//save2DTable_top(density,fileName,path,iceThickness,100,T);
-
-void save2DTable_top(double **table,char *name, char* path,double* thickness, int nRow,int nCol)
-{
-    // Read the 2D double table called "table" and store it a tab delimited file called "filename". The default path is a folder called "export". The table dimensions should be passed as parameter.
-    FILE *fp;
-    int li=0;
-    int co=0;
-    int startC=0;
-    char full_path[180]="";
-    sprintf(full_path,"%s/%s",path,name);
-    if((fp=fopen(full_path, "w+"))==NULL)
-    {
-        printf("Cannot open file: %s\n",full_path);
-    }
-    else
-    {
-        printf("File oppened:%s\n...writing...\n",full_path);
-        for (li=0; li<nRow; li+=1)
-        {
-            for (co=startC; co<nCol; co+=1)
-            {
-				int real_li=0;
-                if(co!=startC)
-                {
-                    fprintf(fp,"\t");
-                    real_li = (int)(thickness[co-1])-li;
-
-                }
-                else{
-					 real_li = (int)(thickness[co])-li;
-				}
-                if(table[real_li][co]>0)
-                {
-                    fprintf(fp,"%f",table[real_li][co]);
-                }
-                else
-                {
-                    fprintf(fp,"NaN");
-                }
-            }
-            fprintf(fp,"\n");
-        }
-        fclose(fp);
-        printf("File closed: %s \n\n",full_path);
-    }
-}
-
-
+//*************DEFINTION OF THE FUNCTIONS*************
 
 //*************Computational functions*************
 
@@ -379,7 +216,7 @@ void t_solve(double *temperature, int time, double thick, double thickFuture, do
     double delz=1.;
     double dhdt=(thickFuture-thick)/delt;
     double se[Z]= {0};
-    
+
     f=freeze[time-1];
 
     for(li=0; li <=thickness; li++)
@@ -519,7 +356,7 @@ void setHeatVar(double *K,double *cp,double *told,int thickness, double *rho, do
             //}
             //cp[li]=152.5 + 7.122*told[li];
        // }
-        
+
     	// Ice thermal conductivity
         if(strcmp(THERMAL,"CP")==0){
             K[li]=9.828*exp(-0.0057*told[li]);
@@ -529,7 +366,7 @@ void setHeatVar(double *K,double *cp,double *told,int thickness, double *rho, do
             K[li]=2.22*(1-0.0067*(told[li]-273.15));
             cp[li]=152.5 + 7.122*told[li];
         }
-      
+
       	// Firn thermal conductivity
         if(strcmp(FIRN,"SC")==0){
             K[li]=K[li]*pow((rho[li]/rhoIce[li]),2-0.5*rho[li]/rhoIce[li]);
@@ -537,7 +374,7 @@ void setHeatVar(double *K,double *cp,double *told,int thickness, double *rho, do
         else if(strcmp(FIRN,"CP")==0){
             K[li]=2.*K[li]*rho[li]/(3*rhoIce[li]-rho[li]);
         }
-        
+
     }
 }
 
@@ -571,7 +408,7 @@ void computeMelt(double* m,double* tground,double* rho,double L,double K0,double
         	*m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
         	if(*m >= *f/31556926.){
         		*m-=*f/31556926;
-        		*f=0;	
+        		*f=0;
         	}
         	else{
         		*f-=*m*31556926;
@@ -597,7 +434,7 @@ void computeMelt(double* m,double* tground,double* rho,double L,double K0,double
            	*tground=tmelt;
    			*f= diff/(rho[0]*L)*31556926;
    		}
-            
+
     }
 }
 
@@ -624,12 +461,12 @@ void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,doubl
 	clock_t t0, t1;
 	t0=clock();
     int li=0;
-    
+
     for(li=0; li<=thickness; li++)
-    { 
-        b[li]=delt*K[li]/(rho[li]*cp[li]*delz*delz);  
+    {
+        b[li]=delt*K[li]/(rho[li]*cp[li]*delz*delz);
         w[li]=-rhoIce[li]/rho[li]*(acc-m-dhdt)*w_def[li]-m;
-        a[li]=delt/(delz*2)*(1/(rho[li]*cp[li]*2*delz)*(K[li+1]-K[li-1])-w[li]); 
+        a[li]=delt/(delz*2)*(1/(rho[li]*cp[li]*2*delz)*(K[li+1]-K[li-1])-w[li]);
     }
 }
 
@@ -825,8 +662,8 @@ void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* 
     {
         tint[i]=x[i];
     }
-    
-    
+
+
 }
 
 //Scale the temperature profile to the next thickness value
@@ -869,6 +706,5 @@ void tempScale(double* told, double thick,double thickFuture,double tsurf)
     {
         told[li]=temperature[li];
     }
-    
-}
 
+}
