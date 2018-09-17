@@ -14,7 +14,15 @@
 //For any other modification see the main.h file
 
 //Include the header file main.h, containing all the key functions and parameters.
-#include "main.h"
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <math.h>
+#include <time.h>
+#include "io.h"
+#include "define.h"
+#include "solver.h"
 
 int main()
 {
@@ -36,22 +44,22 @@ int main()
 
     //Load boundary condition LR04EDC time series. Data file exist for 1Myr of 4Myr
     if(T==10001){
-	    readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_1Myr.dat");
-	    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_1Myr.dat");
-	    readTable(accLoad,"time_series/LR04-EDC_acc_1Myr.dat");
+	    readTable(surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
+	    readTable(iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
+	    readTable(accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
     }
     else if(T==40001){
-    	readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_4Myr.dat");
-	    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_4Myr.dat");
-	    readTable(accLoad,"time_series/LR04-EDC_acc_4Myr.dat");
+    	readTable(surfaceTempLoad,"../time_series/LR04-EDC_temp_4Myr.dat");
+	    readTable(iceThicknessLoad,"../time_series/LR04-EDC_thickness_4Myr.dat");
+	    readTable(accLoad,"../time_series/LR04-EDC_acc_4Myr.dat");
     }
 
     //Load borehole temperature and age profile for comparison
-    readTable(ageGRIP,"time_series/EDC_age_forC.dat");
-    readTable(tGRIP,"time_series/EDC_temp_forC.dat");
+    readTable(ageGRIP,"../time_series/EDC_age_forC.dat");
+    readTable(tGRIP,"../time_series/EDC_temp_forC.dat");
 
     //The following array contain the value of the different free parameters
-    double mwArr[] = {0.5}; //Form factor
+    double mwArr[] = {0.5,0.6}; //Form factor
     int mwN=sizeof(mwArr) / sizeof(mwArr[0]);
    // int mwL=0;
     double QGArr[] = {0.054}; //Ground heat flux
@@ -106,7 +114,7 @@ int main()
 		double deltaH=deltaHArr[deltaHL];
 		double len=lenArr[lenL];
     	double flat=flatArr[flatL];
-    	
+
     	printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
 
         double surfaceTemp[T],iceThickness[T],acc[T],acc2[T],melt[T],freeze[T]= {0};
@@ -115,13 +123,13 @@ int main()
         //Dynamically allow the memory for the temperature matrix
         double** temperature;
         int li,co=0;
-        
+
         temperature = malloc( Z  * sizeof(*temperature));
         for (li = 0; li < Z; li++)
         {
             temperature[li] = malloc(T*sizeof(temperature));
         }
-        
+
         double** density;
         density = malloc( Z  * sizeof(*density));
         for (li = 0; li < Z; li++)
@@ -135,7 +143,7 @@ int main()
                 density[li][co] = 0;
             }
         }
-        
+
         double dens[Z]= {0};
 
         //Loop over the time steps to implement the correction on the time series
@@ -148,14 +156,14 @@ int main()
         }
         double t0=surfaceTemp[T-1];
 		double tLGM=surfaceTemp[T-257];
-		
-		double acc0=acc[T-1];
-		double accLGM=acc[T-257];
-		
-        for(li=0; li<T; li++){  
+
+	//	double acc0=acc[T-1];
+		//double accLGM=acc[T-257];
+
+        for(li=0; li<T; li++){
 			surfaceTemp[li]=(surfaceTemp[li]-t0)*(tLGM-t0+tCor2)/(tLGM-t0)+t0;
 			//acc[li]=(1.5*pow(2,(surfaceTemp[li]-273.15)/10)-0.005)/31556926;
-	        
+
         	if(T==40001){
                 if (li>39980 && li<40001)
                 {
@@ -167,19 +175,19 @@ int main()
                 {
                     surfaceTemp[li]=surfaceTemp[li]-tCor;
                 }
-            	
+
             }
-           	
+
        //    	acc[li]=(acc[li]-acc0)*(accLGM-acc0+accLGM*(pCor/100))/(accLGM-acc0)+acc0;
             acc[li]+=acc[li]*pCor/100.;
             acc2[li]=acc[li]*31556926;
-            
+
 //            if((li>38900 && li<39850) ||( li< 38650 && li > 38100) || ( li< 37800 && li > 37650) || ( li< 37500 && li > 36800) || ( li< 36600 && li > 36100)|| ( li< 35700 && li > 35200)|| ( li< 34700 && li > 34400)|| ( li< 33700 && li > 33300)|| ( li< 32600 && li > 32400)|| ( li< 32050 && li > 31900) || ( li< 31300 && li > 30700) )
   //          {
             //    surfaceTemp[li]+=tCor2;
     //        }
       //      else
-        //    {    		
+        //    {
         }
 
 
@@ -263,7 +271,7 @@ int main()
         //Print the time for the run and the individual loop mean time
         printf("\nIntegration ok in: %f secondes  ",time_for_loop);
         printf("Mean run time: %f miliseconds\n",time_for_loop/(T-1.)*1000.);
-	   
+
 
         //Compute the difference with the age profile for 213 points and compute the mean of the difference
        	printf("\nComputing age ... ");
@@ -278,7 +286,7 @@ int main()
 		        ageVerRes = (int) (Z/5);
 		        ageHorRes = (int) (T/10);
 		        ageCor=0;
-			}        
+			}
 		    else if (T==40001){
 		        ageVerRes = (int) (Z/5);
 		        ageHorRes = (int) (T/20);
@@ -298,10 +306,10 @@ int main()
         }
         double ageDiff=0;
         int a=0;
-        
+
      //   #pragma omp parallel for
         for(a=ageHorRes; a>0; a--){
-        	
+
             int h=0;
             for(h=1; h<ageVerRes; h++)
             {
@@ -314,11 +322,11 @@ int main()
                 }
                 ageRel[h-1][0]=h*5;
                 ageRel[h-1][a]=(a*10+ageCor-age)*100;
-                
+
             }
         }
-				
-		printf("Age ok in in: %f secondes\n",(double)(omp_get_wtime() - begin3));	
+
+		printf("Age ok in in: %f secondes\n",(double)(omp_get_wtime() - begin3));
         //Compute the difference with the borehole  temperature profile below 600 m deep (because upper part of the measurements are affected by seasonality)
         double tempDiff=0;
         double tnew2[Z]= {0};
@@ -337,7 +345,7 @@ int main()
         char path[180]="";
         sprintf(path, "%s/m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%.0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",DIR_PATH,mw,QG*1000,pCor,tCor,tCor2,deltaH,len,flat,"EDC",THERMAL,FIRN,INTERNAL_ENERGY,TYPE);
 
-		
+
         //Check if the man export directory and the subdirectory are already existing and create them if missing
         struct stat st = {0};
         if (stat(DIR_PATH, &st) == -1) {
@@ -351,9 +359,9 @@ int main()
         //sprintf(fileName, "%s.dat","temp_profile");
         //saveTable(tnew,fileName,path,Z);
         sprintf(fileName, "%s.dat","melt_rate");
-        saveTable(melt,fileName,path,T);  
+        saveTable(melt,fileName,path,T);
         //sprintf(fileName, "%s.dat","frozen_ice");
-        //saveTable(freeze,fileName,path,T);        
+        //saveTable(freeze,fileName,path,T);
         if(strcmp(SAVE_TYPE,"MATRIX")==0){
 	        sprintf(fileName, "%s.dat","age_matrix");
 	        save2DTable(ageRel,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
@@ -371,7 +379,7 @@ int main()
 	        sprintf(fileName, "%s.dat","temperature_today");
 	        saveTable(tnew,fileName,path,Z);
         }
-        
+
 	    sprintf(fileName, "%s.dat","density_matrix_top");
 	    if (T==10001){
 	        save2DTable_top(density,fileName,path,iceThickness,200,T);
@@ -379,7 +387,7 @@ int main()
 	    else if(T==40001){
 		    save2DTable_top(density,fileName,path,iceThickness,200,T);
 		}
-		
+
 		sprintf(fileName, "%s.dat","temperature_matrix_top");
 	    if (T==10001){
 	        save2DTable_top(temperature,fileName,path,iceThickness,200,T);
@@ -387,7 +395,7 @@ int main()
 	    else if(T==40001){
 		    save2DTable_top(temperature,fileName,path,iceThickness,200,T);
 		}
-        
+
         sprintf(fileName, "%s.dat","surface_temperature");
         saveTable(surfaceTemp,fileName,path,T);
         sprintf(fileName, "%s.dat","accumulation_rate");
@@ -429,4 +437,3 @@ int main()
 
     return 0;
 }
-
