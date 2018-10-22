@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "define.h"
+#include "structures.h"
 
 //*************File management functions*************
 
@@ -19,5 +21,6 @@ void save2DTable(double **table, char *name, char* path, int nRow, int nCol, int
 
 void save2DTable_top(double **table, char *name, char* path, double* thickness, int nrow, int ncol);
 // TO DO
+bool readIOFile(model_parameters *params, char* fileName);
 
 #endif  /* !IO_H */

@@ -30,7 +30,8 @@ int main()
 
     //Set internal timer
     double begin = omp_get_wtime();
-
+    model_parameters params;
+		initModelParameters(&params, "init.txt");
     //Tables to load data
     time_series ts;
     initTimeSeries(&ts);

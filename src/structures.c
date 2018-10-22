@@ -1,5 +1,5 @@
 #include "structures.h"
-#include "define.h"
+#include "io.h"
 
 bool initTimeSeries(time_series *ts)
 {
@@ -30,4 +30,9 @@ bool initTimeSeries(time_series *ts)
   }
 
   return true;
+}
+
+bool initModelParameters(model_parameters *params, char* fileName)
+{
+  return readIOFile(params, fileName);
 }

@@ -142,3 +142,8 @@ void save2DTable_top(double **table,char *name, char* path,double* thickness, in
         printf("File closed: %s \n\n",full_path);
     }
 }
+
+bool readIOFile(model_parameters *params, char* fileName)
+{
+	return 0;
+}
