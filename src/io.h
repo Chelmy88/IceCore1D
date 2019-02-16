@@ -10,7 +10,7 @@
 
 //*************File management functions*************
 
-void readTable(double* table,char* fileName);
+bool readTable(double* table,char* fileName);
 // Read the indicated data file and store it to the given table. Size is not controlled, to avoid error the table should be large enough
 
 void saveTable(double *table, char *name, char* path, int tabSize);
@@ -22,5 +22,9 @@ void save2DTable(double **table, char *name, char* path, int nRow, int nCol, int
 void save2DTable_top(double **table, char *name, char* path, double* thickness, int nrow, int ncol);
 // TO DO
 bool readIOFile(model_parameters *params, char* fileName);
+
+void removeSpaces(char* source);
+
+void removeComments(char* source);
 
 #endif  /* !IO_H */

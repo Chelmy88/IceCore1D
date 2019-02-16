@@ -30,8 +30,15 @@ int main()
 
     //Set internal timer
     double begin = omp_get_wtime();
+
+		//Read the model parameters
     model_parameters params;
-		initModelParameters(&params, "init.txt");
+    if(!initModelParameters(&params, "init.txt"))
+		{
+			deleteModelParameters(&params);
+			exit(EXIT_FAILURE);
+		}
+
     //Tables to load data
     time_series ts;
     initTimeSeries(&ts);
@@ -49,25 +56,25 @@ int main()
 
     //Load boundary condition LR04EDC time series. Data file exist for 1Myr of 4Myr
     if(T==10001){
-	    readTable(surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
-	    readTable(iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
-	    readTable(accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
+	    readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_1Myr.dat");
+	    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_1Myr.dat");
+	    readTable(accLoad,"time_series/LR04-EDC_acc_1Myr.dat");
       //readTable(ts.surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
       //readTable(ts.iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
       //readTable(ts.accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
     }
     else if(T==40001){
-    	readTable(surfaceTempLoad,"../time_series/LR04-EDC_temp_4Myr.dat");
-	    readTable(iceThicknessLoad,"../time_series/LR04-EDC_thickness_4Myr.dat");
-	    readTable(accLoad,"../time_series/LR04-EDC_acc_4Myr.dat");
+    	readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_4Myr.dat");
+	    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_4Myr.dat");
+	    readTable(accLoad,"time_series/LR04-EDC_acc_4Myr.dat");
       //readTable(ts.surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
       //readTable(ts.iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
       //readTable(ts.accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
     }
 
     //Load borehole temperature and age profile for comparison
-    readTable(ageGRIP,"../time_series/EDC_age_forC.dat");
-    readTable(tGRIP,"../time_series/EDC_temp_forC.dat");
+    readTable(ageGRIP,"time_series/EDC_age_forC.dat");
+    readTable(tGRIP,"time_series/EDC_temp_forC.dat");
 
     //The following array contain the value of the different free parameters
     double mwArr[] = {0.5,0.6}; //Form factor
