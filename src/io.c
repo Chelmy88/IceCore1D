@@ -3,7 +3,7 @@
 #include <errno.h>
 //*************File management functions*************
 
-bool readTable(double* table,char* fileName)
+bool readTable(double* table, const char* const fileName)
 {
   // Read a table from the file called "filename" and store it into the double table called "table". Table should be 1D. "filename" can contain directory path.
   FILE *fp;
@@ -23,7 +23,8 @@ bool readTable(double* table,char* fileName)
     }
     if(fclose(fp)==0)
     {
-      printf("[I] File imported successfully (%d data) and closed: %s \n\n",li,fileName);
+      printf("[I] File imported successfully (%d data) and closed: %s \n\n",
+             li,fileName);
       return true;
     }
     else
@@ -35,7 +36,8 @@ bool readTable(double* table,char* fileName)
 }
 
 
-void saveTable(double *table,char *name, char* path,int tabSize)
+void saveTable(double *table,const char* const name, const char* const path,
+               const int tabSize)
 {
     // Read the 1D double table called "table" and store it a file called "filename".  Table should be tab delimited. "filename" can contain directory path. The default path is a folder called "export". The table size should be passed as parameter.
   FILE *fp;
@@ -58,9 +60,13 @@ void saveTable(double *table,char *name, char* path,int tabSize)
   }
 }
 
-void save2DTable(double **table,char *name, char* path,int nRow,int nCol, int skipR, int skipC,int startC)
+void save2DTable(double **table, const char* const name, const char* const path,
+                 const int nRow, const int nCol, const int skipR,
+                 const int skipC, const int startC)
 {
-  // Read the 2D double table called "table" and store it a tab delimited file called "filename". The default path is a folder called "export". The table dimensions should be passed as parameter.
+  // Read the 2D double table called "table" and store it a tab delimited
+  // file called "filename". The default path is a folder called "export".
+  // The table dimensions should be passed as parameter.
   FILE *fp;
   int li=0;
   int co=0;
@@ -99,9 +105,12 @@ void save2DTable(double **table,char *name, char* path,int nRow,int nCol, int sk
 
 //save2DTable_top(density,fileName,path,iceThickness,100,T);
 
-void save2DTable_top(double **table,char *name, char* path,double* thickness, int nRow,int nCol)
+void save2DTable_top(double **table, const char *const name, const char* const path,
+     const double* const thickness, const int nRow, const int nCol)
 {
-    // Read the 2D double table called "table" and store it a tab delimited file called "filename". The default path is a folder called "export". The table dimensions should be passed as parameter.
+  // Read the 2D double table called "table" and store it a tab delimited
+  // file called "filename". The default path is a folder called "export".
+  // The table dimensions should be passed as parameter.
   FILE *fp;
   int li=0;
   int co=0;
@@ -144,7 +153,7 @@ void save2DTable_top(double **table,char *name, char* path,double* thickness, in
   }
 }
 
-bool readInitFile(model_parameters *params, char* fileName)
+bool readInitFile(model_parameters *params, const char* const fileName)
 {
   FILE *fp;
   if((fp=fopen(fileName, "r"))==NULL)
@@ -192,10 +201,10 @@ void removeSpaces(char* source)
   }
   while(*j++ != 0);
 }
-void removeComments(char* source)
+void removeComments(char* const source)
 {
   char *ptr;
-  ptr = strchr(source, '//');
+  ptr = strchr(source, '/');
   if (ptr != NULL) {
     *ptr = '\0';
   }
@@ -245,7 +254,8 @@ bool parseLine(char* line,char** arg, char** val)
   return true;
 }
 
-bool setParameter(model_parameters *params, char* arg, char* val)
+bool setParameter(model_parameters *params, const char* const arg,
+                  const char* const val)
 {
   if(strcmp(arg,"Z")==0)
   {

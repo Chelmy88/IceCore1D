@@ -47,7 +47,6 @@ bool initModelParameters(model_parameters *params, char* fileName)
   params->Z1=-1;
   params->T1=-1;
   params->S1=-1;
-  params->OUTPUT_PATH;
   params->SAVE_TYPE1=ST_UNSET;
   params->SCHEME1=SC_UNSET;
   params->rhoSnow1=-1;
@@ -57,6 +56,8 @@ bool initModelParameters(model_parameters *params, char* fileName)
   params->VERTICAL1=VP_UNSET;
   params->INTERNAL_ENERGY1=IE_UNSET;
   params->MELTING1=ME_UNSET;
+  params->OUTPUT_PATH=NULL;
+
   return readInitFile(params, fileName);
 }
 

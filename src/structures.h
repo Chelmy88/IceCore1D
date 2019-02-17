@@ -33,7 +33,6 @@ typedef struct _model_parameters {
   int Z1; //3400//height of the table
   int T1; //10001//10001 //width of the table
   int S1; //1500 //Length of the spin up in hYr
-  char* OUTPUT_PATH; //"output"//Directory to store data file into
   enum SAVE_TYPE_ENUM SAVE_TYPE1; //"VECTOR"//MATRIX or VECTOR to save age and temperature
   enum SCHEME_ENUM SCHEME1; //"CN"//Scheme used, values can be CN or expl
   int rhoSnow1; //350 //Value of the snow density used in the computation of the density profile
@@ -43,6 +42,7 @@ typedef struct _model_parameters {
   enum VERTICAL_PROFILE_ENUME VERTICAL1;// "FI" // Set the flux shape function to FI or PA
   enum INTERNAL_ENERGY_ENUM INTERNAL_ENERGY1;// "OFF" //Decide wether internal energy should be included or not
   enum MELTING_ENUM MELTING1;// "FREE_MELT" //Basal malting-refeezing handeling : FREE_MELT->no basal refreezing, temperature decreases if there is no melt, FREEZING_NO_ICE -> some refreezing is possible, but the ice dissapear (i.e. bottom temp is always tmelt, no other difference), FREEZING -> some water is allowed to refreez, when melting comes back, first this ice is melted before real melting occures (refreezing and melting of frozen ice have no inflence on vertical velocity).
+  char* OUTPUT_PATH; //"output"//Directory to store data file into
 }model_parameters;
 
 bool initModelParameters(model_parameters *params, char* fileName);
