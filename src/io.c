@@ -153,7 +153,7 @@ void save2DTable_top(double **table, const char *const name, const char* const p
   }
 }
 
-bool readInitFile(model_parameters *params, const char* const fileName)
+bool readInitFile(model_parameters* const params, const char* const fileName)
 {
   FILE *fp;
   if((fp=fopen(fileName, "r"))==NULL)
@@ -168,6 +168,10 @@ bool readInitFile(model_parameters *params, const char* const fileName)
   {
     removeSpaces(line);
     removeComments(line);
+    if(line[0] == '\0')
+    {
+      continue;
+    }
     char *arg=NULL;
     char *val=NULL;
     if(!parseLine(line,&arg,&val))
@@ -180,6 +184,13 @@ bool readInitFile(model_parameters *params, const char* const fileName)
     }
   }
   fclose(fp);
+  if(state)
+  {
+    if(!checkParameter(params))
+    {
+      state=false;
+    }
+  }
   if(state)
   {
     printf("[I] Ini file %s read successfully\n",fileName);
@@ -254,7 +265,7 @@ bool parseLine(char* line,char** arg, char** val)
   return true;
 }
 
-bool setParameter(model_parameters *params, const char* const arg,
+bool setParameter(model_parameters* const params, const char* const arg,
                   const char* const val)
 {
   if(strcmp(arg,"Z")==0)
@@ -409,15 +420,15 @@ bool setParameter(model_parameters *params, const char* const arg,
       return false;
     }
   }
-  else if(strcmp(arg,"VERTICAL")==0)
+  else if(strcmp(arg,"VERTICAL_PROFILE")==0)
   {
     if (strcmp(val,"FI")==0)
     {
-      params->VERTICAL1=VP_FI;
+      params->VERTICAL_PROFILE1=VP_FI;
     }
     else if (strcmp(val,"PA")==0)
     {
-      params->VERTICAL1=VP_PA;
+      params->VERTICAL_PROFILE1=VP_PA;
     }
     else
     {
@@ -468,4 +479,76 @@ bool setParameter(model_parameters *params, const char* const arg,
   }
 
   return true;
+}
+
+bool checkParameter(model_parameters* const params){
+
+  bool state=true;
+  if(params->Z1==-1)
+  {
+    printf("[E] Unset parameter Z. This parameter is mandatory\n");
+    state=false;
+  }
+  if(params->T1==-1)
+  {
+    printf("[E] Unset parameter T. This parameter is mandatory\n");
+    state=false;
+  }
+  if(params->S1==-1)
+  {
+    params->S1=1500;
+    printf("[W] Unset parameter S, the default value of 1500 is used\n");
+  }
+  if(params->rhoSnow1==-1)
+  {
+    params->rhoSnow1=350;
+    printf("[W] Unset parameter rhoSnow, the default value of 350 is used\n");
+  }
+  if(!params->OUTPUT_PATH)
+  {
+    printf("[E] Unset parameter OUTPUT_PATH. This parameter is mandatory\n");
+    state=false;
+  }
+  if(params->SAVE_TYPE1==ST_UNSET)
+  {
+    params->SAVE_TYPE1=ST_VECTOR;
+    printf("[W] Unset parameter SAVE_TYPE, the default value of VECTOR is used\n");
+  }
+  if(params->SCHEME1==SC_UNSET)
+  {
+    params->SCHEME1=SC_CN;
+    printf("[W] Unset parameter SCHEME, the default value of CN is used\n");
+  }
+  if(params->THERMAL1==TH_UNSET)
+  {
+    params->THERMAL1=TH_CP;
+    printf("[W] Unset parameter THERMAL, the default value of CP is used\n");
+  }
+  if(params->FIRN1==FI_UNSET)
+  {
+    params->FIRN1=FI_SC;
+    printf("[W] Unset parameter FIRN, the default value of SC is used\n");
+  }
+  if(params->RHO1==RHO_UNSET)
+  {
+    params->RHO1=RHO_FIRN;
+    printf("[W] Unset parameter RHO, the default value of FIRN is used\n");
+  }
+  if(params->VERTICAL_PROFILE1==VP_UNSET)
+  {
+    params->VERTICAL_PROFILE1=VP_FI;
+    printf("[W] Unset parameter VERTICAL_PROFILE, the default value of FI is used\n");
+  }
+  if(params->INTERNAL_ENERGY1==IE_UNSET)
+  {
+    params->INTERNAL_ENERGY1=IE_OFF;
+    printf("[W] Unset parameter INTERNAL_ENERGY, the default value of OFF is used\n");
+  }
+  if(params->MELTING1==ME_UNSET)
+  {
+    params->MELTING1=ME_FREE_MELT;
+    printf("[W] Unset parameter MELTING, the default value of FREE_MELT is used\n");
+  }
+  return(state);
+
 }

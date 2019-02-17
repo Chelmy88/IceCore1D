@@ -25,7 +25,7 @@ void save2DTable(double **table, const char* const name, const char* const path,
 void save2DTable_top(double **table, const char* const name, const char* const path,
                      const double* const thickness, const int nrow, const int ncol);
 // TO DO
-bool readInitFile(model_parameters *params, const char* const fileName);
+bool readInitFile(model_parameters* const params, const char* const fileName);
 
 void removeSpaces(char* const source);
 
@@ -33,6 +33,8 @@ void removeComments(char* const source);
 
 bool parseLine(char* line, char** arg, char** val);
 
-bool setParameter(model_parameters *params, const char* const arg, const char* const val);
+bool setParameter(model_parameters* const params, const char* const arg, const char* const val);
+
+bool checkParameter(model_parameters* const params);
 
 #endif  /* !IO_H */

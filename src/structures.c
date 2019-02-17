@@ -53,7 +53,7 @@ bool initModelParameters(model_parameters *params, char* fileName)
   params->THERMAL1=TH_UNSET;
   params->FIRN1=FI_UNSET;
   params->RHO1=RHO_UNSET;
-  params->VERTICAL1=VP_UNSET;
+  params->VERTICAL_PROFILE1=VP_UNSET;
   params->INTERNAL_ENERGY1=IE_UNSET;
   params->MELTING1=ME_UNSET;
   params->OUTPUT_PATH=NULL;
@@ -81,11 +81,11 @@ void printModelParameters(model_parameters *params)
   printf("\tSCHEME\t\t:\t%s\n", SCHEME_STR[params->SCHEME1]);
   printf("\trhoSnow\t\t:\t%d\n", params->rhoSnow1);
   printf("\tTHERMAL\t\t:\t%s\n", THERMAL_STR[params->THERMAL1]);
-  printf("\tFIRN1\t\t:\t%s\n", FIRN_STR[params->FIRN1]);
-  printf("\tRHO1\t\t:\t%s\n", RHO_TYPE_STR[params->RHO1]);
-  printf("\tVERTICAL1\t:\t%s\n", VERTICAL_PROFILE_STR[params->VERTICAL1]);
-  printf("\tINTERNAL_ENERGY1:\t%s\n", INTERNAL_ENERGY_STR[params->INTERNAL_ENERGY1]);
-  printf("\tMELTING1\t:\t%s\n", MELTING_STR[params->MELTING1]);
+  printf("\tFIRN\t\t:\t%s\n", FIRN_STR[params->FIRN1]);
+  printf("\tRHO\t\t:\t%s\n", RHO_TYPE_STR[params->RHO1]);
+  printf("\tVERTICAL_PROFILE:\t%s\n", VERTICAL_PROFILE_STR[params->VERTICAL_PROFILE1]);
+  printf("\tINTERNAL_ENERGY\t:\t%s\n", INTERNAL_ENERGY_STR[params->INTERNAL_ENERGY1]);
+  printf("\tMELTING\t\t:\t%s\n", MELTING_STR[params->MELTING1]);
 }
 
 
