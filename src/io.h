@@ -21,10 +21,14 @@ void save2DTable(double **table, char *name, char* path, int nRow, int nCol, int
 
 void save2DTable_top(double **table, char *name, char* path, double* thickness, int nrow, int ncol);
 // TO DO
-bool readIOFile(model_parameters *params, char* fileName);
+bool readInitFile(model_parameters *params, char* fileName);
 
 void removeSpaces(char* source);
 
 void removeComments(char* source);
+
+bool parseLine(char* line,char** arg, char** val);
+
+bool setParameter(model_parameters *params, char* arg, char* val);
 
 #endif  /* !IO_H */

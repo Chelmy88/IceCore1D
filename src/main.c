@@ -36,6 +36,8 @@ int main()
     if(!initModelParameters(&params, "init.txt"))
 		{
 			deleteModelParameters(&params);
+      printf("[E] Error reading the ini file. Exiting now\n");
+
 			exit(EXIT_FAILURE);
 		}
 

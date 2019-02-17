@@ -1,5 +1,6 @@
 #include "io.h"
-
+#include <dirent.h>
+#include <errno.h>
 //*************File management functions*************
 
 bool readTable(double* table,char* fileName)
@@ -15,7 +16,6 @@ bool readTable(double* table,char* fileName)
   }
   else
   {
-    printf("[I] File: %s opened in reading mode\n",fileName);
     while(fscanf(fp,"%lf",&a)==1)
     {
       table[li]=a;
@@ -144,7 +144,7 @@ void save2DTable_top(double **table,char *name, char* path,double* thickness, in
   }
 }
 
-bool readIOFile(model_parameters *params, char* fileName)
+bool readInitFile(model_parameters *params, char* fileName)
 {
   FILE *fp;
   if((fp=fopen(fileName, "r"))==NULL)
@@ -152,18 +152,34 @@ bool readIOFile(model_parameters *params, char* fileName)
     printf("[E] Cannot open file: %s\n",fileName);
     return false;
   }
-
-  printf("[I] File: %s opened in reading mode\n",fileName);
   char *line = NULL;
   size_t len = 0;
+  bool state=true;
   while(getline(&line, &len, fp) != -1)
   {
     removeSpaces(line);
     removeComments(line);
-    printf("READ: %s \n", line);
+    char *arg=NULL;
+    char *val=NULL;
+    if(!parseLine(line,&arg,&val))
+    {
+      state=false;
+    }
+    else if(!setParameter(params,arg,val))
+    {
+      state=false;
+    }
   }
   fclose(fp);
-  return true;
+  if(state)
+  {
+    printf("[I] Ini file %s read successfully\n",fileName);
+    printModelParameters(params);
+    return true;
+  }
+  else{
+    return false;
+  }
 }
 
 void removeSpaces(char* source)
@@ -179,8 +195,267 @@ void removeSpaces(char* source)
 void removeComments(char* source)
 {
   char *ptr;
-  ptr = strchr(source, '/');
+  ptr = strchr(source, '//');
   if (ptr != NULL) {
     *ptr = '\0';
   }
+  ptr = strchr(source, '#');
+  if (ptr != NULL) {
+    *ptr = '\0';
+  }
+  ptr = strchr(source, ';');
+  if (ptr != NULL) {
+    *ptr = '\0';
+  }
+  ptr = strchr(source, '\n');
+  if (ptr != NULL) {
+    *ptr = '\0';
+  }
+}
+
+bool parseLine(char* line,char** arg, char** val)
+{
+  char * pch;
+  pch = strtok (line,":");
+  if(pch != NULL)
+  {
+    *arg=pch;
+    pch = strtok (NULL, ":");
+    if(pch != NULL)
+    {
+      *val=pch;
+      pch = strtok (NULL, ":");
+      if(pch != NULL)
+      {
+        printf("[E] Two ':' delimiter found in argument line %s\n",line);
+        return false;      }
+    }
+    else
+    {
+      printf("[E] No ':' delimiter found in argument line %s\n",line);
+      return false;
+    }
+  }
+  else
+  {
+    printf("[E] No ':' delimiter found in argument line %s\n",line);
+    return false;
+
+  }
+  return true;
+}
+
+bool setParameter(model_parameters *params, char* arg, char* val)
+{
+  if(strcmp(arg,"Z")==0)
+  {
+    if(atoi(val)>0)
+    {
+      params->Z1=atoi(val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for Z. Must be positive integer.\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"T")==0)
+  {
+    if(atoi(val)>0)
+    {
+      params->T1=atoi(val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for Z. Must be positive integer.\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"S")==0)
+  {
+    if(atoi(val)>0)
+    {
+      params->S1=atoi(val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for Z. Must be positive integer\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"OUTPUT_PATH")==0)
+  {
+    DIR* dir = opendir(val);
+    if (dir)
+    {
+        params->OUTPUT_PATH = (char*)malloc(sizeof(char) * (strlen(val)+1));
+        strcpy(params->OUTPUT_PATH,val);
+        closedir(dir);
+    }
+    else if (ENOENT == errno)
+    {
+      printf("[E] Wrong parameter %s for OUTPUT_PATH, directory not exist\n",val);
+      return false;
+    }
+    else
+    {
+      printf("[E] Failed to open OUTPUT_PATH %s\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"SAVE_TYPE")==0)
+  {
+    if (strcmp(val,"MATRIX")==0)
+    {
+      params->SAVE_TYPE1=ST_MATRIX;
+    }
+    else if (strcmp(val,"VECTOR")==0)
+    {
+      params->SAVE_TYPE1=ST_VECTOR;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for SAVE_TYPE\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"SCHEME")==0)
+  {
+    if (strcmp(val,"CN")==0)
+    {
+      params->SCHEME1=SC_CN;
+    }
+    else if (strcmp(val,"EXPL")==0)
+    {
+      params->SCHEME1=SC_EXPL;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for SAVE_TYPE\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"rhoSnow")==0)
+  {
+    if(atoi(val)>0)
+    {
+      params->rhoSnow1=atoi(val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for rhoSnow. Must be positive integer\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"THERMAL")==0)
+  {
+    if (strcmp(val,"CP")==0)
+    {
+      params->THERMAL1=TH_CP;
+    }
+    else if (strcmp(val,"GO")==0)
+    {
+      params->THERMAL1=TH_GO;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for THERMAL\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"FIRN")==0)
+  {
+    if (strcmp(val,"SC")==0)
+    {
+      params->FIRN1=FI_SC;
+    }
+    else if (strcmp(val,"CP")==0)
+    {
+      params->FIRN1=FI_CP;
+    }
+    else if (strcmp(val,"FI")==0)
+    {
+      params->FIRN1=FI_FI;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for FIRN1\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"RHO")==0)
+  {
+    if (strcmp(val,"FIRN")==0)
+    {
+      params->RHO1=RHO_FIRN;
+    }
+    else if (strcmp(val,"CONST")==0)
+    {
+      params->RHO1=RHO_CONST;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for RHO\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"VERTICAL")==0)
+  {
+    if (strcmp(val,"FI")==0)
+    {
+      params->VERTICAL1=VP_FI;
+    }
+    else if (strcmp(val,"PA")==0)
+    {
+      params->VERTICAL1=VP_PA;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for VERTICAL1\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"INTERNAL_ENERGY")==0)
+  {
+    if (strcmp(val,"ON")==0)
+    {
+      params->INTERNAL_ENERGY1=IE_ON;
+    }
+    else if (strcmp(val,"OFF")==0)
+    {
+      params->INTERNAL_ENERGY1=IE_OFF;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for INTERNAL_ENERGY\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"MELTING")==0)
+  {
+    if (strcmp(val,"FREE_MELT")==0)
+    {
+      params->MELTING1=ME_FREE_MELT;
+    }
+    else if (strcmp(val,"NO_ICE")==0)
+    {
+      params->MELTING1=ME_FREEZING_NO_ICE;
+    }
+    else if (strcmp(val,"FREEZING")==0)
+    {
+      params->MELTING1=ME_FREEZING;
+    }
+    else
+    {
+      printf("[E] Unknown value %s for MELTING\n",val);
+      return false;
+    }
+  }
+  else
+  {
+    printf("[E] Unkown parameter %s find in ini file\n",arg);
+    return false;
+  }
+
+  return true;
 }
