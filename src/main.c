@@ -1,14 +1,17 @@
 // Written by Adrien Michel
-// adrien.michel@no-log.org
+// adrien.michel@epfl.ch
 // For the purpose of a Master thesis at the
 // Climate and Environmental Group
 // And
 // Oeschger Center for Climate Change Research
 // University of Bern
 // February 2016
+// Modified during PhD at EPFL, ENAC, CRYOS
+// February 2019
+
+// License: distribted under GNU GPL V3 license
 
 // This code is developed to run on Linux machine, but should run on Windows or Mac OS
-
 //The only parameters defined in main.c are the free parameters of the model, the correction to the boundary condition time series,
 //and the initial temperature profile for spin up
 //For any other modification see the main.h file
@@ -24,6 +27,7 @@
 #include "define.h"
 #include "solver.h"
 #include "structures.h"
+#include "runModel.h"
 
 int main()
 {
@@ -124,21 +128,21 @@ int main()
   //int flatL=0;
   for (int flatL=0; flatL<flatN; flatL++)
   {
-  double mw=mwArr[mwL];
-  double tCor=TcorArr[TcorL];
-  double tCor2=TcorArr2[TcorL2];
-  double pCor=PcorArr[PcorL];
-  double deltaH=deltaHArr[deltaHL];
-  double len=lenArr[lenL];
-  double flat=flatArr[flatL];
+  const double mw=mwArr[mwL];
+	const double QG=QGArr[QGL];
+  const double tCor=TcorArr[TcorL];
+  const double tCor2=TcorArr2[TcorL2];
+  const double pCor=PcorArr[PcorL];
+  const double deltaH=deltaHArr[deltaHL];
+  const double len=lenArr[lenL];
+  const double flat=flatArr[flatL];
 
   printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
 
-  double surfaceTemp[T],iceThickness[T],acc[T],acc2[T],melt[T],freeze[T]= {0};
-  double spin_up_temp[Z],spin_up_temp2[Z],temperatureBorder[Z],tnew[Z]= {0};
-  //Dynamically allow the memory for the temperature matrix
-  double** temperature;
   int li,co=0;
+
+  // ALLOCATE //
+  double** temperature;
   temperature = malloc( Z  * sizeof(*temperature));
   for (li = 0; li < Z; li++)
   {
@@ -158,108 +162,13 @@ int main()
     }
   }
 
-  double dens[Z]= {0};
+  double surfaceTemp[T],iceThickness[T],acc[T],acc2[T],melt[T],freeze[T]= {0};
+  double tnew[Z]={0};
 
-  //Loop over the time steps to implement the correction on the time series
-  for(li=0; li<T; li++)
-  {
-    surfaceTemp[li]=surfaceTempLoad[li];
-    iceThickness[li]=iceThicknessLoad[li];
-    acc[li]=accLoad[li]*3600*24*365/31556926;
-    //surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
-  }
-  double t0=surfaceTemp[T-1];
-  double tLGM=surfaceTemp[T-257];
-
-  for(li=0; li<T; li++){
-    surfaceTemp[li]=(surfaceTemp[li]-t0)*(tLGM-t0+tCor2)/(tLGM-t0)+t0;
-    if(T==40001){
-      if (li>39980 && li<40001)
-        {
-        surfaceTemp[li]=surfaceTemp[li]-tCor;
-      }
-    }
-    else if(T==10001){
-      if (li>9980 && li<10001)
-      {
-        surfaceTemp[li]=surfaceTemp[li]-tCor;
-      }
-    }
-    acc[li]+=acc[li]*pCor/100.;
-    acc2[li]=acc[li]*31556926;
-  }
-  // set the initial temperature profile
-  double Tmelt=273.16-9.8*7.42*1E-8*921*iceThickness[0];
-  double Tmelt2=273.16-9.8*7.42*1E-8*921*(iceThickness[0]-deltaH);
-  double Tsurf=surfaceTemp[0];
-    //Spin up the second profile used for the valley effect
-  if(deltaH!=0)
-  {
-    for(li=0; li <=(int)(iceThickness[0]-deltaH); li++)
-    {
-      spin_up_temp2[li]=Tmelt2+(Tsurf-Tmelt2)*pow(li/(iceThickness[0]-deltaH),1);
-    }
-    spin_up(spin_up_temp2,iceThickness[0]-deltaH,surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,1,len,flat,melt,dens);
-    for(li=0; li <=(int)(iceThickness[0]-deltaH); li++)
-    {
-      temperatureBorder[li]=spin_up_temp2[li];
-    }
-  }
-  //Spin up the main profile first without the valley effect and a second time if the valley effect is enabled
-  for(li=0; li <=(int)iceThickness[0]; li++)
-  {
-    spin_up_temp[li]=Tmelt+(Tsurf-Tmelt)*pow(li/iceThickness[0],1);
-  }
-  spin_up(spin_up_temp,iceThickness[0],surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,1,len,flat,melt, dens);
-
-  if(deltaH!=0){
-    spin_up(spin_up_temp,iceThickness[0],surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,0,len,flat,melt, dens);
-  }
-
-  for(li=0; li<Z; li++)
-  {
-    temperature[li][0]=spin_up_temp[li];
-    density[li][0]=dens[li];
-    tnew[li]=spin_up_temp[li];
-  }
-  //Loop over all the time steps
-  int time=1;
-  float time_for_loop=0;
-  for (time=1; time<T; time++)
-  {
-    double begin2=omp_get_wtime();
-
-    for(li=0; li <Z; li++)
-    {
-      tnew[li]=0;
-      dens[li]=0;
-    }
-    for(li=0; li <=(int)iceThickness[time-1]; li++)
-    {
-      tnew[li]=temperature[li][time-1];
-    }
-    if(deltaH!=0)
-    {
-      t_solve(temperatureBorder,time, iceThickness[time-1]-deltaH, iceThickness[time]-deltaH, surfaceTemp[time],acc[time],melt,QG,mw,temperatureBorder,deltaH,1,len,flat,freeze,dens);
-    }
-    t_solve(tnew,time, iceThickness[time-1], iceThickness[time], surfaceTemp[time],acc[time],melt,QG,mw,temperatureBorder,deltaH,0,len,flat,freeze,dens);
-    tempScale(tnew,  iceThickness[time-1], iceThickness[time], surfaceTemp[time]);
-    if(deltaH!=0)
-    {
-      tempScale(temperatureBorder,iceThickness[time-1]-deltaH, iceThickness[time]-deltaH, surfaceTemp[time]);
-    }
-    for(li=0; li <=(int)iceThickness[time]; li++)
-    {
-      temperature[li][time]=tnew[li];
-      density[li][time]=dens[li];
-    }
-    time_for_loop+=(double)(omp_get_wtime() - begin2); //Store the loop time
-  }
-  //melt[0]=melt[1];
-  //Print the time for the run and the individual loop mean time
-  printf("\nIntegration ok in: %f secondes  ",time_for_loop);
-  printf("Mean run time: %f miliseconds\n",time_for_loop/(T-1.)*1000.);
-
+  runModel(tnew, surfaceTemp, iceThickness, acc, acc2, melt, freeze, temperature,
+           density, surfaceTempLoad, iceThicknessLoad, accLoad,
+           mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
+  // POST PROCESSING//
   //Compute the difference with the age profile for 213 points and compute the mean of the difference
  	printf("\nComputing age ... ");
  	fflush(stdout);
@@ -267,6 +176,7 @@ int main()
  	double** ageRel;
  	int ageVerRes = 0;
   int ageHorRes = 0;
+  int ageCor= 0;
   if(strcmp(SAVE_TYPE,"MATRIX")==0){
     if (T==10001){
       ageVerRes = (int) (Z/5);
