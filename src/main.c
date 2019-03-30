@@ -111,7 +111,7 @@ int main()
   for (int flatL=0; flatL<flatN; flatL++)
   {
   const double mw=mwArr[mwL];
-	const double QG=QGArr[QGL];
+  const double QG=QGArr[QGL];
   const double tCor=TcorArr[TcorL];
   const double tCor2=TcorArr2[TcorL2];
   const double pCor=PcorArr[PcorL];
