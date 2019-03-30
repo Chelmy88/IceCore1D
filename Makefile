@@ -6,9 +6,9 @@ ifdef PROFILE
     PROFILEFLAGS+=-pg
 endif
 
-CC=gcc-8
+CC=clang
 LD=${CC}
-CFLAGS+=-Wall -Wextra -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
+CFLAGS+=-Wall -Wextra -Wpadded -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
 LDFLAGS+= -lm
 
 SOURCEDIR=src

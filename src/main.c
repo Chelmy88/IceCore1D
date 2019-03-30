@@ -46,8 +46,8 @@ int main()
 
   //Tables to load data
   time_series ts;
-  initTimeSeries(&ts);
-  double surfaceTempLoad[T],iceThicknessLoad[T],accLoad[T]= {0};
+  initTimeSeries(&ts,&params);
+
   double ageGRIP[Z],tGRIP[Z]= {0};
   int i=0;
 
@@ -57,24 +57,6 @@ int main()
   for (i = 0; i < 15000; i++)
   {
       summary[i] = malloc(11*sizeof(summary));
-  }
-
-  //Load boundary condition LR04EDC time series. Data file exist for 1Myr of 4Myr
-  if(T==10001){
-    readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_1Myr.dat");
-    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_1Myr.dat");
-    readTable(accLoad,"time_series/LR04-EDC_acc_1Myr.dat");
-    //readTable(ts.surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
-    //readTable(ts.iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
-    //readTable(ts.accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
-  }
-  else if(T==40001){
-    readTable(surfaceTempLoad,"time_series/LR04-EDC_temp_4Myr.dat");
-    readTable(iceThicknessLoad,"time_series/LR04-EDC_thickness_4Myr.dat");
-    readTable(accLoad,"time_series/LR04-EDC_acc_4Myr.dat");
-    //readTable(ts.surfaceTempLoad,"../time_series/LR04-EDC_temp_1Myr.dat");
-    //readTable(ts.iceThicknessLoad,"../time_series/LR04-EDC_thickness_1Myr.dat");
-    //readTable(ts.accLoad,"../time_series/LR04-EDC_acc_1Myr.dat");
   }
   //Load borehole temperature and age profile for comparison
   readTable(ageGRIP,"time_series/EDC_age_forC.dat");
@@ -137,6 +119,8 @@ int main()
   const double len=lenArr[lenL];
   const double flat=flatArr[flatL];
 
+  printf("%f %f %f",ts.surfaceTempLoad[0],ts.iceThicknessLoad[0],ts.accLoad[0]);
+
   printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
 
   int li,co=0;
@@ -166,7 +150,7 @@ int main()
   double tnew[Z]={0};
 
   runModel(tnew, surfaceTemp, iceThickness, acc, acc2, melt, freeze, temperature,
-           density, surfaceTempLoad, iceThicknessLoad, accLoad,
+           density, ts.surfaceTempLoad, ts.iceThicknessLoad, ts.accLoad,
            mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
   // POST PROCESSING//
   //Compute the difference with the age profile for 213 points and compute the mean of the difference

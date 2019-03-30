@@ -1,13 +1,18 @@
-Z : 3400 //height of the table
-T : 10001//10001 //width of the table
-S : 1500 //Length of the spin up in hYr
-DIR_PATH : output//Directory to store data file into
-SAVE_TYPE : VECTOR//MATRIX or VECTOR to save age and temperature
-TYPE : CN //Scheme used, values can be CN or expl
-rhoSnow : 350 //Value of the snow density used in the computation of the density profile
-THERMAL : CP//Model used for themal parameters, can be CP or GO
-FIRN : SC // Correction for the firn thermal conductivity, can be CP,SC or FI
-RHO : FIRN // Set the density profile to realistic (FIRN) or constant (CONST)
-VERTICAL : FI // Set the flux shape function to FI or PA
-INTERNAL_ENERGY : OFF //Decide wether internal energy should be included or not
+Z : 3400 #height of the table
+T : 10001 #width of the table
+S : 1500 #Length of the spin up in hYr
+TEMPERATURE_FILE : time_series/LR04-EDC_temp_1Myr.dat #Directory to store data file into
+ACCUMULATION_FILE : time_series/LR04-EDC_acc_1Myr.dat
+ICE_THICKNESS_FILE : time_series/LR04-EDC_thickness_1Myr.dat
+AGE_FILE: time_series/EDC_age_forC.dat
+BOREHOLE_TEMPERATURE_FILE: time_series/EDC_temp_forC.dat
+OUTPUT_PATH : output #Directory to store data file into
+SAVE_TYPE : VECTO R#MATRIX or VECTOR to save age and temperature
+SCHEME : CN #Scheme used, values can be CN or expl
+rhoSnow : 350 #Value of the snow density used in the computation of the density profile
+THERMAL : CP #Model used for themal parameters, can be CP or GO
+FIRN : SC #Correction for the firn thermal conductivity, can be CP,SC or FI
+RHO : FIRN #Set the density profile to realistic (FIRN) or constant (CONST)
+VERTICAL_PROFILE : FI #Set the flux shape function to FI or PA
+INTERNAL_ENERGY : OFF #Decide wether internal energy should be included or not
 MELTING : FREE_MELT

@@ -1,6 +1,7 @@
 #include "io.h"
 #include <dirent.h>
 #include <errno.h>
+#include <unistd.h>
 //*************File management functions*************
 
 bool readTable(double* table, const char* const fileName)
@@ -215,10 +216,10 @@ void removeSpaces(char* source)
 void removeComments(char* const source)
 {
   char *ptr;
-  ptr = strchr(source, '/');
-  if (ptr != NULL) {
-    *ptr = '\0';
-  }
+  // ptr = strchr(source, '/');
+  // if (ptr != NULL) {
+  //   *ptr = '\0';
+  // }
   ptr = strchr(source, '#');
   if (ptr != NULL) {
     *ptr = '\0';
@@ -321,6 +322,66 @@ bool setParameter(model_parameters* const params, const char* const arg,
     else
     {
       printf("[E] Failed to open OUTPUT_PATH %s\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"TEMPERATURE_FILE")==0)
+  {
+    if( access( val, R_OK ) != -1 ) {
+      params->TEMPERATURE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
+      strcpy(params->TEMPERATURE_FILE,val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for TEMPERATURE_FILE, file not exist or not readable\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"ACCUMULATION_FILE")==0)
+  {
+    if( access( val, R_OK ) != -1 ) {
+      params->ACCUMULATION_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
+      strcpy(params->ACCUMULATION_FILE,val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for ACCUMULATION_FILE, file not exist or not readable\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"ICE_THICKNESS_FILE")==0)
+  {
+    if( access( val, R_OK ) != -1 ) {
+      params->ICE_THICKNESS_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
+      strcpy(params->ICE_THICKNESS_FILE,val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for ICE_THICKNESS_FILE, file not exist or not readable\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"AGE_FILE")==0)
+  {
+    if( access( val, R_OK ) != -1 ) {
+      params->AGE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
+      strcpy(params->AGE_FILE,val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for AGE_FILE, file not exist or not readable\n",val);
+      return false;
+    }
+  }
+  else if(strcmp(arg,"BOREHOLE_TEMPERATURE_FILE")==0)
+  {
+    if( access( val, R_OK ) != -1 ) {
+      params->BOREHOLE_TEMPERATURE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
+      strcpy(params->BOREHOLE_TEMPERATURE_FILE,val);
+    }
+    else
+    {
+      printf("[E] Wrong parameter %s for BOREHOLE_TEMPERATURE_FILE, file not exist or not readable\n",val);
       return false;
     }
   }
@@ -507,6 +568,31 @@ bool checkParameter(model_parameters* const params){
   if(!params->OUTPUT_PATH)
   {
     printf("[E] Unset parameter OUTPUT_PATH. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->TEMPERATURE_FILE)
+  {
+    printf("[E] Unset parameter TEMPERATURE_FILE. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->ACCUMULATION_FILE)
+  {
+    printf("[E] Unset parameter ACCUMULATION_FILE. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->ICE_THICKNESS_FILE)
+  {
+    printf("[E] Unset parameter ICE_THICKNESS_FILE. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->AGE_FILE)
+  {
+    printf("[E] Unset parameter AGE_FILE. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->BOREHOLE_TEMPERATURE_FILE)
+  {
+    printf("[E] Unset parameter BOREHOLE_TEMPERATURE_FILE. This parameter is mandatory\n");
     state=false;
   }
   if(params->SAVE_TYPE1==ST_UNSET)

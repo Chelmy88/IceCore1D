@@ -1,34 +1,57 @@
 #include "structures.h"
 #include "io.h"
 
-bool initTimeSeries(time_series *ts)
+bool initTimeSeries(time_series *ts, model_parameters *params)
 {
   ts->surfaceTempLoad=calloc(T,sizeof(double));
   if(!ts->surfaceTempLoad)
   {
     return false;
   }
+  if(!readTable(ts->surfaceTempLoad,params->TEMPERATURE_FILE))
+  {
+    return false;
+  }
+
   ts->iceThicknessLoad=calloc(T,sizeof(double));
   if(!ts->iceThicknessLoad)
   {
     return false;
   }
+  if(!readTable(ts->iceThicknessLoad,params->ICE_THICKNESS_FILE))
+  {
+    return false;
+  }
+
   ts->accLoad=calloc(T,sizeof(double));
   if(!ts->accLoad)
   {
     return false;
   }
+  if(!readTable(ts->accLoad,params->ACCUMULATION_FILE))
+  {
+    return false;
+  }
+
   ts->age=calloc(Z,sizeof(double));
   if(!ts->age)
   {
     return false;
   }
+  if(!readTable(ts->age,params->AGE_FILE))
+  {
+    return false;
+  }
+
   ts->borehole_temp=calloc(Z,sizeof(double));
   if(!ts->borehole_temp)
   {
     return false;
   }
-
+  if(!readTable(ts->borehole_temp,params->BOREHOLE_TEMPERATURE_FILE))
+  {
+    return false;
+  }
   return true;
 }
 
@@ -76,6 +99,11 @@ void printModelParameters(model_parameters *params)
   printf("\tZ\t\t:\t%d\n", params->Z1);
   printf("\tT\t\t:\t%d\n", params->T1);
   printf("\tS\t\t:\t%d\n", params->S1);
+  printf("\tTEMPERATURE_FILE\t:\t%s\n", params->TEMPERATURE_FILE);
+  printf("\tACCUMULATION_FILE\t:\t%s\n", params->ACCUMULATION_FILE);
+  printf("\tICE_THICKNESS_FILE\t:\t%s\n", params->ICE_THICKNESS_FILE);
+  printf("\tAGE_FILE\t:\t%s\n", params->AGE_FILE);
+  printf("\tBOREHOLE_TEMPERATURE_FILE\t:\t%s\n", params->BOREHOLE_TEMPERATURE_FILE);
   printf("\tOUTPUT_PATH\t:\t%s\n", params->OUTPUT_PATH);
   printf("\tSAVE_TYPE\t:\t%s\n", SAVE_TYPE_STR[params->SAVE_TYPE1]);
   printf("\tSCHEME\t\t:\t%s\n", SCHEME_STR[params->SCHEME1]);
