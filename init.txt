@@ -1,13 +1,27 @@
+# Size of the model
+
 Z : 3400 #height of the table
 T : 10001 #width of the table
 S : 1500 #Length of the spin up in hYr
-TEMPERATURE_FILE : time_series/LR04-EDC_temp_1Myr.dat #Directory to store data file into
+
+
+# Files paths
+
+TEMPeRATURE_FILE : time_series/LR04-EDC_temp_1Myr.dat #Directory to store data file into
 ACCUMULATION_FILE : time_series/LR04-EDC_acc_1Myr.dat
 ICE_THICKNESS_FILE : time_series/LR04-EDC_thickness_1Myr.dat
 AGE_FILE: time_series/EDC_age_forC.dat
 BOREHOLE_TEMPERATURE_FILE: time_series/EDC_temp_forC.dat
 OUTPUT_PATH : output #Directory to store data file into
+
+
+# Output settings
+
 SAVE_TYPE : VECTO R#MATRIX or VECTOR to save age and temperature
+
+
+# Parameters of the model
+
 SCHEME : CN #Scheme used, values can be CN or expl
 rhoSnow : 350 #Value of the snow density used in the computation of the density profile
 THERMAL : CP #Model used for themal parameters, can be CP or GO
@@ -16,3 +30,12 @@ RHO : FIRN #Set the density profile to realistic (FIRN) or constant (CONST)
 VERTICAL_PROFILE : FI #Set the flux shape function to FI or PA
 INTERNAL_ENERGY : OFF #Decide wether internal energy should be included or not
 MELTING : FREE_MELT
+
+MW : 1.1 2.2 3.3 4.4
+QG : 2.3 5.6 .6 6.7
+PCOR : 1
+TCOR : 2 
+TCOR2 : 3
+DELTAH : 4
+LEN : 5
+FLAT : 6

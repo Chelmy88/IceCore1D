@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
+#include <string.h>
 //*************File management functions*************
 
 bool readTable(double* table, const char* const fileName)
@@ -167,7 +168,6 @@ bool readInitFile(model_parameters* const params, const char* const fileName)
   bool state=true;
   while(getline(&line, &len, fp) != -1)
   {
-    removeSpaces(line);
     removeComments(line);
     if(line[0] == '\0')
     {
@@ -216,10 +216,6 @@ void removeSpaces(char* source)
 void removeComments(char* const source)
 {
   char *ptr;
-  // ptr = strchr(source, '/');
-  // if (ptr != NULL) {
-  //   *ptr = '\0';
-  // }
   ptr = strchr(source, '#');
   if (ptr != NULL) {
     *ptr = '\0';
@@ -241,6 +237,8 @@ bool parseLine(char* line,char** arg, char** val)
   if(pch != NULL)
   {
     *arg=pch;
+    removeSpaces(*arg);
+    upper_string(*arg);
     pch = strtok (NULL, ":");
     if(pch != NULL)
     {
@@ -249,7 +247,8 @@ bool parseLine(char* line,char** arg, char** val)
       if(pch != NULL)
       {
         printf("[E] Two ':' delimiter found in argument line %s\n",line);
-        return false;      }
+        return false;
+      }
     }
     else
     {
@@ -266,11 +265,14 @@ bool parseLine(char* line,char** arg, char** val)
   return true;
 }
 
+//Rather long function that test for the various allowed keys
+//and strores the corresponding values
 bool setParameter(model_parameters* const params, const char* const arg,
-                  const char* const val)
+                  char* const val)
 {
   if(strcmp(arg,"Z")==0)
   {
+    removeSpaces(val);
     if(atoi(val)>0)
     {
       params->Z1=atoi(val);
@@ -281,8 +283,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"T")==0)
   {
+    removeSpaces(val);
     if(atoi(val)>0)
     {
       params->T1=atoi(val);
@@ -293,8 +297,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"S")==0)
   {
+    removeSpaces(val);
     if(atoi(val)>0)
     {
       params->S1=atoi(val);
@@ -305,8 +311,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"OUTPUT_PATH")==0)
   {
+    removeSpaces(val);
     DIR* dir = opendir(val);
     if (dir)
     {
@@ -325,8 +333,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"TEMPERATURE_FILE")==0)
   {
+    removeSpaces(val);
     if( access( val, R_OK ) != -1 ) {
       params->TEMPERATURE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
       strcpy(params->TEMPERATURE_FILE,val);
@@ -337,8 +347,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"ACCUMULATION_FILE")==0)
   {
+    removeSpaces(val);
     if( access( val, R_OK ) != -1 ) {
       params->ACCUMULATION_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
       strcpy(params->ACCUMULATION_FILE,val);
@@ -349,8 +361,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"ICE_THICKNESS_FILE")==0)
   {
+    removeSpaces(val);
     if( access( val, R_OK ) != -1 ) {
       params->ICE_THICKNESS_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
       strcpy(params->ICE_THICKNESS_FILE,val);
@@ -361,8 +375,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"AGE_FILE")==0)
   {
+    removeSpaces(val);
     if( access( val, R_OK ) != -1 ) {
       params->AGE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
       strcpy(params->AGE_FILE,val);
@@ -373,8 +389,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"BOREHOLE_TEMPERATURE_FILE")==0)
   {
+    removeSpaces(val);
     if( access( val, R_OK ) != -1 ) {
       params->BOREHOLE_TEMPERATURE_FILE = (char*)malloc(sizeof(char) * (strlen(val)+1));
       strcpy(params->BOREHOLE_TEMPERATURE_FILE,val);
@@ -385,8 +403,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"SAVE_TYPE")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"MATRIX")==0)
     {
       params->SAVE_TYPE1=ST_MATRIX;
@@ -401,8 +421,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"SCHEME")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"CN")==0)
     {
       params->SCHEME1=SC_CN;
@@ -417,20 +439,24 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
-  else if(strcmp(arg,"rhoSnow")==0)
+
+  else if(strcmp(arg,"RHOSNOW")==0)
   {
+    removeSpaces(val);
     if(atoi(val)>0)
     {
       params->rhoSnow1=atoi(val);
     }
     else
     {
-      printf("[E] Wrong parameter %s for rhoSnow. Must be positive integer\n",val);
+      printf("[E] Wrong parameter %s for RHOSNOW. Must be positive integer\n",val);
       return false;
     }
   }
+
   else if(strcmp(arg,"THERMAL")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"CP")==0)
     {
       params->THERMAL1=TH_CP;
@@ -445,8 +471,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"FIRN")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"SC")==0)
     {
       params->FIRN1=FI_SC;
@@ -465,8 +493,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"RHO")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"FIRN")==0)
     {
       params->RHO1=RHO_FIRN;
@@ -481,8 +511,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"VERTICAL_PROFILE")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"FI")==0)
     {
       params->VERTICAL_PROFILE1=VP_FI;
@@ -497,8 +529,10 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
   else if(strcmp(arg,"INTERNAL_ENERGY")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"ON")==0)
     {
       params->INTERNAL_ENERGY1=IE_ON;
@@ -515,6 +549,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
   }
   else if(strcmp(arg,"MELTING")==0)
   {
+    removeSpaces(val);
     if (strcmp(val,"FREE_MELT")==0)
     {
       params->MELTING1=ME_FREE_MELT;
@@ -533,12 +568,290 @@ bool setParameter(model_parameters* const params, const char* const arg,
       return false;
     }
   }
+
+  else if(strcmp(arg,"MW")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for MW\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.mw = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.mw[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.mw_n=n;
+  }
+
+  else if(strcmp(arg,"QG")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for QG\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.QG = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.QG[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.QG_n=n;
+  }
+
+  else if(strcmp(arg,"TCOR")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for TCOR\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.TCor = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.TCor[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.TCor_n=n;
+  }
+
+  else if(strcmp(arg,"TCOR2")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for TCOR2\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.TCor2 = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.TCor2[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.TCor2_n=n;
+  }
+
+  else if(strcmp(arg,"PCOR")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for PCOR\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.PCor = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.PCor[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.PCor_n=n;
+  }
+
+  else if(strcmp(arg,"DELTAH")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for DELTAH\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.deltaH = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.deltaH[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.deltaH_n=n;
+  }
+  else if(strcmp(arg,"LEN")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for LEN\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.len = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.len[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.len_n=n;
+  }
+
+  else if(strcmp(arg,"FLAT")==0)
+  {
+    char *token;
+    // make a copy for the first pass
+    char val_copy[40];
+    strcpy(val_copy,val);
+    // get the first token
+    token = strtok(val_copy, " ");
+    // walk through other tokens and store the size
+    // also validate the input
+    size_t n=0;
+    while( token != NULL ) {
+      if(atof(token)>0)
+      {
+       ++n;
+      }
+      else{
+       printf("[E] Unknown value %s for FLAT\n",token);
+       return false;
+      }
+      token = strtok(NULL, " ");
+    }
+    // Now alloc the array
+    params->values.flat = (double *) malloc(sizeof(double) * n);
+    // and store the data in it
+    token = strtok(val, " ");
+    n=0;
+    while( token != NULL ) {
+      params->values.flat[n]=atof(token);
+      token = strtok(NULL, " ");
+      ++n;
+    }
+    params->values.flat_n=n;
+  }
   else
   {
     printf("[E] Unkown parameter %s find in ini file\n",arg);
     return false;
   }
-
   return true;
 }
 
@@ -563,7 +876,7 @@ bool checkParameter(model_parameters* const params){
   if(params->rhoSnow1==-1)
   {
     params->rhoSnow1=350;
-    printf("[W] Unset parameter rhoSnow, the default value of 350 is used\n");
+    printf("[W] Unset parameter RHOSNOW, the default value of 350 is used\n");
   }
   if(!params->OUTPUT_PATH)
   {
@@ -635,6 +948,68 @@ bool checkParameter(model_parameters* const params){
     params->MELTING1=ME_FREE_MELT;
     printf("[W] Unset parameter MELTING, the default value of FREE_MELT is used\n");
   }
+  if(!params->values.mw)
+  {
+    printf("[E] Unset parameter MW. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->values.QG)
+  {
+    printf("[E] Unset parameter QG. This parameter is mandatory\n");
+    state=false;
+  }
+  if(!params->values.TCor)
+  {
+    params->values.TCor=(double *) malloc(sizeof(double));
+    params->values.TCor[0]=0.;
+    params->values.TCor_n=1;
+    printf("[W] Unset parameter TCOR, the default value of 0 is used\n");
+  }
+  if(!params->values.TCor2)
+  {
+    params->values.TCor2=(double *) malloc(sizeof(double));
+    params->values.TCor2[0]=0.;
+    params->values.TCor2_n=1;
+    printf("[W] Unset parameter TCOR2, the default value of 0 is used\n");
+  }
+  if(!params->values.PCor)
+  {
+    params->values.PCor=(double *) malloc(sizeof(double));
+    params->values.PCor[0]=0.;
+    params->values.PCor_n=1;
+    printf("[W] Unset parameter PCOR, the default value of 0 is used\n");
+  }
+  if(!params->values.deltaH)
+  {
+    params->values.deltaH=(double *) malloc(sizeof(double));
+    params->values.deltaH[0]=0.;
+    params->values.deltaH_n=1;
+    printf("[W] Unset parameter DELTAH, the default value of 0 is used\n");
+  }
+  if(!params->values.len)
+  {
+    params->values.len=(double *) malloc(sizeof(double));
+    params->values.len[0]=0.;
+    params->values.len_n=1;
+    printf("[W] Unset parameter LEN, the default value of 0 is used\n");
+  }
+  if(!params->values.flat)
+  {
+    params->values.flat=(double *) malloc(sizeof(double));
+    params->values.flat[0]=0.;
+    params->values.flat_n=1;
+    printf("[W] Unset parameter FLAT, the default value of 0 is used\n");
+  }
   return(state);
+}
 
+
+void upper_string(char* s) {
+   size_t c = 0;
+   while (s[c] != '\0') {
+      if (s[c] >= 'a' && s[c] <= 'z') {
+         s[c] = s[c] - 32;
+      }
+      ++c;
+   }
 }

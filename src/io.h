@@ -33,8 +33,10 @@ void removeComments(char* const source);
 
 bool parseLine(char* line, char** arg, char** val);
 
-bool setParameter(model_parameters* const params, const char* const arg, const char* const val);
+bool setParameter(model_parameters* const params, const char* const arg, char* const val);
 
 bool checkParameter(model_parameters* const params);
+
+void upper_string(char* s);
 
 #endif  /* !IO_H */

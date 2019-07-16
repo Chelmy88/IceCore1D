@@ -80,6 +80,23 @@ bool initModelParameters(model_parameters *params, char* fileName)
   params->INTERNAL_ENERGY1=IE_UNSET;
   params->MELTING1=ME_UNSET;
   params->OUTPUT_PATH=NULL;
+  params->values.mw=NULL;
+  params->values.mw_n=0;
+  params->values.QG=NULL;
+  params->values.QG_n=0;
+  params->values.TCor=NULL;
+  params->values.TCor_n=0;
+  params->values.TCor2=NULL;
+  params->values.TCor2_n=0;
+  params->values.PCor=NULL;
+  params->values.PCor_n=0;
+  params->values.deltaH=NULL;
+  params->values.deltaH_n=0;
+  params->values.len=NULL;
+  params->values.len_n=0;
+  params->values.flat=NULL;
+  params->values.flat_n=0;
+
 
   return readInitFile(params, fileName);
 }
@@ -107,19 +124,78 @@ void printModelParameters(model_parameters *params)
   printf("\tOUTPUT_PATH\t:\t%s\n", params->OUTPUT_PATH);
   printf("\tSAVE_TYPE\t:\t%s\n", SAVE_TYPE_STR[params->SAVE_TYPE1]);
   printf("\tSCHEME\t\t:\t%s\n", SCHEME_STR[params->SCHEME1]);
-  printf("\trhoSnow\t\t:\t%d\n", params->rhoSnow1);
+  printf("\tRHOSNOW\t\t:\t%d\n", params->rhoSnow1);
   printf("\tTHERMAL\t\t:\t%s\n", THERMAL_STR[params->THERMAL1]);
   printf("\tFIRN\t\t:\t%s\n", FIRN_STR[params->FIRN1]);
   printf("\tRHO\t\t:\t%s\n", RHO_TYPE_STR[params->RHO1]);
   printf("\tVERTICAL_PROFILE:\t%s\n", VERTICAL_PROFILE_STR[params->VERTICAL_PROFILE1]);
   printf("\tINTERNAL_ENERGY\t:\t%s\n", INTERNAL_ENERGY_STR[params->INTERNAL_ENERGY1]);
   printf("\tMELTING\t\t:\t%s\n", MELTING_STR[params->MELTING1]);
+  printf("\tMW\t\t:\t%.2f", params->values.mw[0]);
+  for(size_t i=1; i<params->values.mw_n;++i)
+  {
+    printf(" %.2f", params->values.mw[i]);
+  }
+  printf("\n");
+  printf("\tQG\t\t:\t%.2f", params->values.QG[0]);
+  for(size_t i=1; i<params->values.QG_n;++i)
+  {
+    printf(" %.2f", params->values.QG[i]);
+  }
+  printf("\n");
+  printf("\tTCOR\t\t:\t%.2f", params->values.TCor[0]);
+  for(size_t i=1; i<params->values.TCor_n;++i)
+  {
+    printf(" %.2f", params->values.TCor[i]);
+  }
+  printf("\n");
+  printf("\tTCOR2\t\t:\t%.2f", params->values.TCor2[0]);
+  for(size_t i=1; i<params->values.TCor2_n;++i)
+  {
+    printf(" %.2f", params->values.TCor2[i]);
+  }
+  printf("\n");
+  printf("\tPCOR\t\t:\t%.2f", params->values.PCor[0]);
+  for(size_t i=1; i<params->values.PCor_n;++i)
+  {
+    printf(" %.2f", params->values.PCor[i]);
+  }
+  printf("\n");
+  printf("\tDELTAH\t\t:\t%.2f", params->values.deltaH[0]);
+  for(size_t i=1; i<params->values.deltaH_n;++i)
+  {
+    printf(" %.2f", params->values.deltaH[i]);
+  }
+  printf("\n");
+  printf("\tLEN\t\t:\t%.2f", params->values.len[0]);
+  for(size_t i=1; i<params->values.len_n;++i)
+  {
+    printf(" %.2f", params->values.len[i]);
+  }
+  printf("\n");
+  printf("\tFLAT\t\t:\t%.2f", params->values.flat[0]);
+  for(size_t i=1; i<params->values.flat_n;++i)
+  {
+    printf(" %.2f", params->values.flat[i]);
+  }
+  printf("\n");
+
+
 }
 
 
 void deleteModelParameters(model_parameters *params)
 {
   free(params->OUTPUT_PATH);
+  free(params->values.mw);
+  free(params->values.QG);
+  free(params->values.TCor);
+  free(params->values.TCor2);
+  free(params->values.PCor);
+  free(params->values.deltaH);
+  free(params->values.len);
+  free(params->values.flat);
+
   printf("[I] Parameters correctly deleted\n");
 
 }

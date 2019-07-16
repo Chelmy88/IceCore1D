@@ -5,6 +5,25 @@
 #include <stdlib.h>
 #include "define.h"
 
+typedef struct _model_values {
+  double* mw;
+  size_t mw_n;
+  double* QG;
+  size_t QG_n;
+  double* TCor;
+  size_t TCor_n;
+  double* TCor2;
+  size_t TCor2_n;
+  double* PCor;
+  size_t PCor_n;
+  double* deltaH;
+  size_t deltaH_n;
+  double* len;
+  size_t len_n;
+  double* flat;
+  size_t flat_n;
+
+}model_values;
 
 enum SAVE_TYPE_ENUM{ST_MATRIX, ST_VECTOR, ST_UNSET};
 enum SCHEME_ENUM {SC_CN, SC_EXPL, SC_UNSET};
@@ -34,6 +53,7 @@ typedef struct _model_parameters {
   char* AGE_FILE; //"output"//Directory to store data file into
   char* BOREHOLE_TEMPERATURE_FILE; //"output"//Directory to store data file into
   char* OUTPUT_PATH; //"output"//Directory to store data file into
+  model_values values;
 }model_parameters;
 
 bool initModelParameters(model_parameters *params, char* fileName);
