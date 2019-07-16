@@ -29,6 +29,8 @@
 #include "structures.h"
 #include "runModel.h"
 
+void mainLoop(model_parameters* params,time_series* ts, double**  summary);
+
 int main()
 {
 
@@ -48,24 +50,26 @@ int main()
   time_series ts;
   initTimeSeries(&ts,&params);
 
-  double ageGRIP[Z],tGRIP[Z]= {0};
-  int i=0;
 
-  //DEfine a table to store a summary of the various runs performed
+  //Define a table to store a summary of the various runs performed
   double** summary;
   summary = malloc( 15000  * sizeof(*summary));
-  for (i = 0; i < 15000; i++)
+  for (size_t i = 0; i < 15000; i++)
   {
       summary[i] = malloc(11*sizeof(summary));
   }
-  //Load borehole temperature and age profile for comparison
-  readTable(ageGRIP,"time_series/EDC_age_forC.dat");
-  readTable(tGRIP,"time_series/EDC_temp_forC.dat");
 
+  mainLoop(&params, &ts, summary);
+
+  printf("Run OK -- in %f seconds\n",(double)(omp_get_wtime() - begin));
+
+  return 0;
+}
+
+void mainLoop(model_parameters* params, time_series* ts, double**  summary){
   //The following array contain the value of the different free parameters
   double mwArr[] = {0.5,0.6}; //Form factor
   int mwN=sizeof(mwArr) / sizeof(mwArr[0]);
- // int mwL=0;
   double QGArr[] = {0.054}; //Ground heat flux
   int QGN=sizeof(QGArr) / sizeof(QGArr[0]);
   double TcorArr[] = {1}; //Correction for temperature between 6000 and 2000 BP in K
@@ -80,35 +84,34 @@ int main()
   int lenN=sizeof(lenArr) / sizeof(lenArr[0]);
   double flatArr[] = {500}; //Flat arrea at the bottom of the valley
   int flatN=sizeof(flatArr) / sizeof(flatArr[0]);
-
   int tot=mwN*QGN*TcorN*PcorN*deltaHN*lenN*flatN*TcorN2; //Number of run, the size of the summary table should be bigger
 
   // Loops for the values of the free parameter
   int count=0;
   //Initialize the core splitting, should be placed in front of a loop having if possible a number of elements corresponding to a multiple of the core numbers
   #pragma omp parallel for collapse(8)
-  for (int mwL=0; mwL<mwN; mwL++)
+  for (size_t mwL=0; mwL<mwN; mwL++)
   {
   //int QGL=0;
-  for (int QGL=0; QGL<QGN; QGL++)
+  for (size_t QGL=0; QGL<QGN; QGL++)
   {
   // int TcorL=0;
-  for (int TcorL=0; TcorL<TcorN; TcorL++)
+  for (size_t TcorL=0; TcorL<TcorN; TcorL++)
   {
   //int TcorL2=0;
-  for (int TcorL2=0; TcorL2<TcorN2; TcorL2++)
+  for (size_t TcorL2=0; TcorL2<TcorN2; TcorL2++)
   {
   //int PcorL=0;
-  for (int PcorL=0; PcorL<PcorN; PcorL++)
+  for (size_t PcorL=0; PcorL<PcorN; PcorL++)
   {
   //int deltaHL=0;
-  for (int deltaHL=0; deltaHL<deltaHN; deltaHL++)
+  for (size_t deltaHL=0; deltaHL<deltaHN; deltaHL++)
   {
   //int lenL=0;
-  for (int lenL=0; lenL<lenN; lenL++)
+  for (size_t lenL=0; lenL<lenN; lenL++)
   {
   //int flatL=0;
-  for (int flatL=0; flatL<flatN; flatL++)
+  for (size_t flatL=0; flatL<flatN; flatL++)
   {
   const double mw=mwArr[mwL];
   const double QG=QGArr[QGL];
@@ -119,28 +122,26 @@ int main()
   const double len=lenArr[lenL];
   const double flat=flatArr[flatL];
 
-  printf("%f %f %f",ts.surfaceTempLoad[0],ts.iceThicknessLoad[0],ts.accLoad[0]);
+  printf("%f %f %f",ts->surfaceTempLoad[0],ts->iceThicknessLoad[0],ts->accLoad[0]);
 
   printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
-
-  int li,co=0;
 
   // ALLOCATE //
   double** temperature;
   temperature = malloc( Z  * sizeof(*temperature));
-  for (li = 0; li < Z; li++)
+  for (size_t li = 0; li < Z; li++)
   {
     temperature[li] = malloc(T*sizeof(temperature));
   }
   double** density;
   density = malloc( Z  * sizeof(*density));
-  for (li = 0; li < Z; li++)
+  for (size_t li = 0; li < Z; li++)
   {
     density[li] = malloc(T*sizeof(density));
   }
-  for (li = 0; li < Z; li++)
+  for (size_t li = 0; li < Z; li++)
   {
-    for (co=0; co<T; co++)
+    for (size_t co=0; co<T; co++)
     {
       density[li][co] = 0;
     }
@@ -150,46 +151,44 @@ int main()
   double tnew[Z]={0};
 
   runModel(tnew, surfaceTemp, iceThickness, acc, acc2, melt, freeze, temperature,
-           density, ts.surfaceTempLoad, ts.iceThicknessLoad, ts.accLoad,
+           density, ts->surfaceTempLoad, ts->iceThicknessLoad, ts->accLoad,
            mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
+
   // POST PROCESSING//
   //Compute the difference with the age profile for 213 points and compute the mean of the difference
  	printf("\nComputing age ... ");
  	fflush(stdout);
  	double begin3=omp_get_wtime();
  	double** ageRel;
- 	int ageVerRes = 0;
-  int ageHorRes = 0;
-  int ageCor= 0;
+ 	size_t ageVerRes = 0;
+  size_t ageHorRes = 0;
+  size_t ageCor= 0;
   if(strcmp(SAVE_TYPE,"MATRIX")==0){
     if (T==10001){
-      ageVerRes = (int) (Z/5);
-      ageHorRes = (int) (T/10);
+      ageVerRes = (size_t) (Z/5);
+      ageHorRes = (size_t) (T/10);
       ageCor=0;
     }
     else if (T==40001){
-      ageVerRes = (int) (Z/5);
-      ageHorRes = (int) (T/20);
+      ageVerRes = (size_t) (Z/5);
+      ageHorRes = (size_t) (T/20);
       ageCor=20000;
     }
   }
   else if (strcmp(SAVE_TYPE,"VECTOR")==0){
-    ageVerRes = (int) (Z/5);
+    ageVerRes = (size_t) (Z/5);
     ageHorRes = 1;
     ageCor=T-11;
   }
 
-  ageRel = malloc( (int) ageVerRes * sizeof(*ageRel));
-  for (i = 0; i < ageVerRes; i++)
+  ageRel = malloc( (size_t) ageVerRes * sizeof(*ageRel));
+  for (size_t i = 0; i < ageVerRes; i++)
   {
     ageRel[i] = malloc((ageHorRes+1)*sizeof(ageRel));
   }
-  double ageDiff=0;
-  int a=0;
-   //   #pragma omp parallel for
-  for(a=ageHorRes; a>0; a--){
-    int h=0;
-    for(h=1; h<ageVerRes; h++)
+  double ageDiff=0;   //   #pragma omp parallel for
+  for(size_t a=ageHorRes; a>0; a--){
+    for(size_t h=1; h<ageVerRes; h++)
     {
       float height=h*5;
       int age=a*10+ageCor;
@@ -207,12 +206,12 @@ int main()
   //Compute the difference with the borehole  temperature profile below 600 m deep (because upper part of the measurements are affected by seasonality)
   double tempDiff=0;
   double tnew2[Z]= {0};
-  for(li=0; li<=(int)iceThickness[T-1]-7; li++)
+  for(size_t li=0; li<=(size_t)iceThickness[T-1]-7; li++)
   {
     tnew2[li]=temperature[li][T-1];
-    if(li<((int)iceThickness[T-1]-600))
+    if(li<((size_t)iceThickness[T-1]-600))
     {
-        tempDiff+=fabs(tnew2[li]-tGRIP[li]);
+        tempDiff+=fabs(tnew2[li]-ts->borehole_temp[li]);
     }
   }
   tempDiff/=(iceThickness[T-1]);
@@ -292,17 +291,11 @@ int main()
   printf("END LOOP : %d/%d\n\n",count,tot);
       //Uncomment the line below to save the whole temperature matrix
      // saveTemp(temperature);
-  for (li = 0; li < Z; li++)
+  for (size_t li = 0; li < Z; li++)
   {
     double* currentIntPtr = temperature[li];
     free(currentIntPtr);
   }
   fflush(stdout);
 }}}}}}}}
-
-    //Save the summary table
-    //save2DTable(summary,"Summary",path,15000,11,1,1);
-  printf("Run OK -- in %f seconds\n",(double)(omp_get_wtime() - begin));
-
-  return 0;
 }
