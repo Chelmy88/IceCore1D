@@ -6,6 +6,8 @@ ifdef PROFILE
     PROFILEFLAGS+=-pg
 endif
 
+OPTIMFLAGS?=-O0
+
 CC=clang
 LD=${CC}
 CFLAGS+=-Wall -Wextra -Wpadded -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
