@@ -67,62 +67,36 @@ int main()
 }
 
 void mainLoop(model_parameters* params, time_series* ts, double**  summary){
-  //The following array contain the value of the different free parameters
-  double mwArr[] = {0.5,0.6}; //Form factor
-  int mwN=sizeof(mwArr) / sizeof(mwArr[0]);
-  double QGArr[] = {0.054}; //Ground heat flux
-  int QGN=sizeof(QGArr) / sizeof(QGArr[0]);
-  double TcorArr[] = {1}; //Correction for temperature between 6000 and 2000 BP in K
-  int TcorN=sizeof(TcorArr) / sizeof(TcorArr[0]);
-  double TcorArr2[] = {2}; //Correction for cold periods temperature in K
-  int TcorN2=sizeof(TcorArr2) / sizeof(TcorArr2[0]);
-  double PcorArr[] = {10}; //Correction of accumulation time series in %
-  int PcorN=sizeof(PcorArr) / sizeof(PcorArr[0]);
-  double deltaHArr[] = {100}; //Depth of the valley
-  int deltaHN=sizeof(deltaHArr) / sizeof(deltaHArr[0]);
-  double lenArr[] = {5000}; //Width of the valley
-  int lenN=sizeof(lenArr) / sizeof(lenArr[0]);
-  double flatArr[] = {500}; //Flat arrea at the bottom of the valley
-  int flatN=sizeof(flatArr) / sizeof(flatArr[0]);
-  int tot=mwN*QGN*TcorN*PcorN*deltaHN*lenN*flatN*TcorN2; //Number of run, the size of the summary table should be bigger
 
+  int tot=params->values.tot; //Number of run, the size of the summary table should be bigger
   // Loops for the values of the free parameter
   int count=0;
   //Initialize the core splitting, should be placed in front of a loop having if possible a number of elements corresponding to a multiple of the core numbers
   #pragma omp parallel for collapse(8)
-  for (size_t mwL=0; mwL<mwN; mwL++)
+  for (size_t mwL=0; mwL<params->values.mw_n; mwL++)
   {
-  //int QGL=0;
-  for (size_t QGL=0; QGL<QGN; QGL++)
+  for (size_t QGL=0; QGL<params->values.QG_n; QGL++)
   {
-  // int TcorL=0;
-  for (size_t TcorL=0; TcorL<TcorN; TcorL++)
+  for (size_t TcorL=0; TcorL<params->values.TCor_n; TcorL++)
   {
-  //int TcorL2=0;
-  for (size_t TcorL2=0; TcorL2<TcorN2; TcorL2++)
+  for (size_t TcorL2=0; TcorL2<params->values.TCor2_n; TcorL2++)
   {
-  //int PcorL=0;
-  for (size_t PcorL=0; PcorL<PcorN; PcorL++)
+  for (size_t PcorL=0; PcorL<params->values.PCor_n; PcorL++)
   {
-  //int deltaHL=0;
-  for (size_t deltaHL=0; deltaHL<deltaHN; deltaHL++)
+  for (size_t deltaHL=0; deltaHL<params->values.deltaH_n; deltaHL++)
   {
-  //int lenL=0;
-  for (size_t lenL=0; lenL<lenN; lenL++)
+  for (size_t lenL=0; lenL<params->values.len_n; lenL++)
   {
-  //int flatL=0;
-  for (size_t flatL=0; flatL<flatN; flatL++)
+  for (size_t flatL=0; flatL<params->values.flat_n; flatL++)
   {
-  const double mw=mwArr[mwL];
-  const double QG=QGArr[QGL];
-  const double tCor=TcorArr[TcorL];
-  const double tCor2=TcorArr2[TcorL2];
-  const double pCor=PcorArr[PcorL];
-  const double deltaH=deltaHArr[deltaHL];
-  const double len=lenArr[lenL];
-  const double flat=flatArr[flatL];
-
-  printf("%f %f %f",ts->surfaceTempLoad[0],ts->iceThicknessLoad[0],ts->accLoad[0]);
+  const double mw=params->values.mw[mwL];
+  const double QG=params->values.QG[QGL];
+  const double tCor=params->values.TCor[TcorL];
+  const double tCor2=params->values.TCor2[TcorL2];
+  const double pCor=params->values.PCor[PcorL];
+  const double deltaH=params->values.deltaH[deltaHL];
+  const double len=params->values.len[lenL];
+  const double flat=params->values.flat[flatL];
 
   printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
 
@@ -253,20 +227,20 @@ void mainLoop(model_parameters* params, time_series* ts, double**  summary){
     sprintf(fileName, "%s.dat","temperature_today");
     saveTable(tnew,fileName,path,Z);
   }
-  sprintf(fileName, "%s.dat","density_matrix_top");
-  if (T==10001){
-      save2DTable_top(density,fileName,path,iceThickness,200,T);
-  }
-  else if(T==40001){
-    save2DTable_top(density,fileName,path,iceThickness,200,T);
-  }
-  sprintf(fileName, "%s.dat","temperature_matrix_top");
-  if (T==10001){
-    save2DTable_top(temperature,fileName,path,iceThickness,200,T);
-  }
-  else if(T==40001){
-    save2DTable_top(temperature,fileName,path,iceThickness,200,T);
-  }
+  // sprintf(fileName, "%s.dat","density_matrix_top");
+  // if (T==10001){
+  //     save2DTable_top(density,fileName,path,iceThickness,200,T);
+  // }
+  // else if(T==40001){
+  //   save2DTable_top(density,fileName,path,iceThickness,200,T);
+  // }
+  // sprintf(fileName, "%s.dat","temperature_matrix_top");
+  // if (T==10001){
+  //   save2DTable_top(temperature,fileName,path,iceThickness,200,T);
+  // }
+  // else if(T==40001){
+  //   save2DTable_top(temperature,fileName,path,iceThickness,200,T);
+  // }
   sprintf(fileName, "%s.dat","surface_temperature");
   saveTable(surfaceTemp,fileName,path,T);
   sprintf(fileName, "%s.dat","accumulation_rate");
@@ -296,6 +270,18 @@ void mainLoop(model_parameters* params, time_series* ts, double**  summary){
     double* currentIntPtr = temperature[li];
     free(currentIntPtr);
   }
+  for (size_t li = 0; li < Z; li++)
+  {
+    double* currentIntPtr = density[li];
+    free(currentIntPtr);
+  }
   fflush(stdout);
 }}}}}}}}
+  for (size_t i = 0; i < 15000; i++)
+  {
+      double* currentIntPtr = summary[i];
+      free(currentIntPtr);
+  }
+  deleteModelParameters(params);
+  deleteTimeSeries(ts);
 }

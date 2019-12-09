@@ -22,7 +22,7 @@ typedef struct _model_values {
   size_t len_n;
   double* flat;
   size_t flat_n;
-
+  size_t tot;
 }model_values;
 
 enum SAVE_TYPE_ENUM{ST_MATRIX, ST_VECTOR, ST_UNSET};

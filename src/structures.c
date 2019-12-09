@@ -96,7 +96,7 @@ bool initModelParameters(model_parameters *params, char* fileName)
   params->values.len_n=0;
   params->values.flat=NULL;
   params->values.flat_n=0;
-
+  params->values.tot=0;
 
   return readInitFile(params, fileName);
 }

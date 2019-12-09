@@ -194,6 +194,11 @@ bool readInitFile(model_parameters* const params, const char* const fileName)
   }
   if(state)
   {
+    params->values.tot=params->values.mw_n *params->values.QG_n *
+                       params->values.TCor_n *params->values.TCor2_n *
+                       params->values.PCor_n *params->values.deltaH_n *
+                       params->values.len_n *params->values.flat_n;
+
     printf("[I] Ini file %s read successfully\n",fileName);
     printModelParameters(params);
     return true;
@@ -411,7 +416,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     {
       params->SAVE_TYPE1=ST_MATRIX;
     }
-    else if (strcmp(val,"VECTOR")==0)
+    else if (strcmp(val,"VECTOR")==-0)
     {
       params->SAVE_TYPE1=ST_VECTOR;
     }
@@ -581,7 +586,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -616,7 +621,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)!=0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -651,7 +656,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -686,7 +691,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -721,7 +726,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -756,7 +761,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -790,7 +795,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
@@ -825,7 +830,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     // also validate the input
     size_t n=0;
     while( token != NULL ) {
-      if(atof(token)>0)
+      if(atof(token)>0 || strcmp(token,"0")==0 || strcmp(token,"0.0")==0)
       {
        ++n;
       }
