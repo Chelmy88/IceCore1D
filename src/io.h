@@ -24,6 +24,9 @@ void save2DTable(double **table, const char* const name, const char* const path,
 
 void save2DTable_top(double **table, const char* const name, const char* const path,
                      const double* const thickness, const int nrow, const int ncol);
+
+bool copyFile(const char* const inFile,const char* const outFile);
+
 // TO DO
 bool readInitFile(model_parameters* const params, const char* const fileName);
 

@@ -282,6 +282,9 @@ void mainLoop(model_parameters* params, time_series* ts, double**  summary){
       double* currentIntPtr = summary[i];
       free(currentIntPtr);
   }
+  char path[120];
+  sprintf(path,"%s/init.txt",params->OUTPUT_PATH);
+  copyFile("init.txt",path);
   deleteModelParameters(params);
   deleteTimeSeries(ts);
 }

@@ -155,6 +155,43 @@ void save2DTable_top(double **table, const char *const name, const char* const p
   }
 }
 
+bool copyFile(const char* const inFile,const char* const outFile)
+{
+  FILE *fs, *ft;
+  char ch;
+  fs=fopen(inFile, "r");
+  if(fs==NULL)
+  {
+    printf("Error in opening source file: %s",inFile);
+    return false;
+  }
+  ft=fopen(outFile, "w");
+  if(ft==NULL)
+  {
+    printf("Error in opening destination file: %s",outFile);
+    fclose(fs);
+    return false;
+  }
+  while(1)
+  {
+    ch=fgetc(fs);
+    if(ch==EOF)
+    {
+      break;
+    }
+    else
+    {
+      fputc(ch, ft);
+    }
+  }
+  printf("File copied successfully");
+  fclose(fs);
+  fclose(ft);
+  return true;
+
+}
+
+
 bool readInitFile(model_parameters* const params, const char* const fileName)
 {
   FILE *fp;
