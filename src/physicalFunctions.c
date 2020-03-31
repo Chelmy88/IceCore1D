@@ -5,9 +5,8 @@
 //*************Computational functions*************
 
 
-void setRho(double* rho, double *rhoIce,double* temp, int thickness,double acc)
+void setRho_FIRN(double* rho, double *rhoIce,double* temp, int thickness,double acc)
 {
-    int li=0;
     double rhoIceConst=917;
     double rhoSnowConst=350;
     double R=8.3144;
@@ -16,34 +15,40 @@ void setRho(double* rho, double *rhoIce,double* temp, int thickness,double acc)
     acc=acc*31556926.;
     double z55 = 1/(rhoIceConst/1000*k0)*(log(0.55/(rhoIceConst/1000-0.55))-log(rhoSnowConst/(rhoIceConst-rhoSnowConst)));
     double z0[Z]= {0};
-    for (li=0; li<=thickness; li++)
+    for (int li=0; li<=thickness; li++)
     {
-        if(strcmp(RHO,"FIRN")==0){
-            rhoIce[li]=916.5-0.14438*(temp[li]-271.16)-0.00015175*(temp[li]-273.16)*(temp[li]-273.16);
-            if((thickness-li)<z55)
-            {
-                z0[li]=exp(rhoIce[li]/1000*k0*(thickness-li))*rhoSnowConst/(rhoIce[li]-rhoSnowConst);
-                rho[li]=rhoIce[li]*z0[li]/(1+z0[li]);
-            }
-            else if (li>2000)
-            {
-                z0[li]=exp(rhoIce[li]/1000*k1*(thickness-li-z55)/sqrt(acc))*0.55/(rhoIce[li]/1000-0.55);
-                rho[li]=rhoIce[li]*z0[li]/(1+z0[li]);
-            }
-            else
-            {
-                rho[li]=rhoIce[li];
-            }
-            if(rho[li]>rhoIce[li])
-            {
-                rho[li]=rhoIce[li];
-            }
-        }
-        else if(strcmp(RHO,"CONST")==0){
-            rho[li]=921;
-        }
+          rhoIce[li]=916.5-0.14438*(temp[li]-271.16)-0.00015175*(temp[li]-273.16)*(temp[li]-273.16);
+          if((thickness-li)<z55)
+          {
+              z0[li]=exp(rhoIce[li]/1000*k0*(thickness-li))*rhoSnowConst/(rhoIce[li]-rhoSnowConst);
+              rho[li]=rhoIce[li]*z0[li]/(1+z0[li]);
+          }
+          else if (li>2000)
+          {
+              z0[li]=exp(rhoIce[li]/1000*k1*(thickness-li-z55)/sqrt(acc))*0.55/(rhoIce[li]/1000-0.55);
+              rho[li]=rhoIce[li]*z0[li]/(1+z0[li]);
+          }
+          else
+          {
+              rho[li]=rhoIce[li];
+          }
+          if(rho[li]>rhoIce[li])
+          {
+              rho[li]=rhoIce[li];
+          }
     }
 }
+
+void setRho_CONST(double* rho, double *rhoIce,double* temp, int thickness,double acc)
+{
+    for (int li=0; li<=thickness; li++)
+    {
+         rho[li]=921;
+    }
+}
+
+
+
 
 void setHeatVar(double *K,double *cp,double *told,int thickness, double *rho, double *rhoIce)
 {

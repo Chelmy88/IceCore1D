@@ -2,7 +2,7 @@
 #include <time.h>
 
 void runModel(model_data *data,const model_parameters * const params,
-              const time_series * const ts)
+              const time_series * const ts, const model_functions * const functions)
 {
   size_t li=0;
   size_t Z1=params->Z1;
@@ -59,7 +59,7 @@ void runModel(model_data *data,const model_parameters * const params,
     {
       spin_up_temp2[li]=Tmelt2+(Tsurf-Tmelt2)*pow(li/(data->iceThickness[0]-data->deltaH),1);
     }
-    spin_up(spin_up_temp2,data->iceThickness[0]-data->deltaH,data->surfaceTemp[0],data->acc[0],
+    spin_up(functions, spin_up_temp2,data->iceThickness[0]-data->deltaH,data->surfaceTemp[0],data->acc[0],
             data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,data->flat,
             data->melt,dens);
     for(li=0; li <=(size_t)(data->iceThickness[0]-data->deltaH); li++)
@@ -72,12 +72,12 @@ void runModel(model_data *data,const model_parameters * const params,
   {
     spin_up_temp[li]=Tmelt+(Tsurf-Tmelt)*pow(li/data->iceThickness[0],1);
   }
-  spin_up(spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+  spin_up(functions, spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
           data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,
           data->flat,data->melt,dens);
 
   if(data->deltaH!=0){
-    spin_up(spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+    spin_up(functions, spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
             data->QG,data->mw,temperatureBorder,data->deltaH,0,data->len,
             data->flat,data->melt,dens);
   }
@@ -108,12 +108,12 @@ void runModel(model_data *data,const model_parameters * const params,
     }
     if(data->deltaH!=0)
     {
-      t_solve(temperatureBorder,time, data->iceThickness[time-1]-data->deltaH,
+      t_solve(functions, temperatureBorder,time, data->iceThickness[time-1]-data->deltaH,
               data->iceThickness[time]-data->deltaH, data->surfaceTemp[time],
               data->acc[time],data->melt,data->QG,data->mw,temperatureBorder,
               data->deltaH,1,data->len,data->flat,data->freeze,dens);
     }
-    t_solve(data->tnew,time, data->iceThickness[time-1], data->iceThickness[time],
+    t_solve(functions, data->tnew,time, data->iceThickness[time-1], data->iceThickness[time],
             data->surfaceTemp[time],data->acc[time],data->melt,data->QG,data->mw,
             temperatureBorder,data->deltaH,0,data->len,data->flat,data->freeze,dens);
 

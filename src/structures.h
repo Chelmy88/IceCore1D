@@ -136,6 +136,6 @@ typedef struct _model_functions {
 
 bool initModelFunctions(model_functions *functions,const model_parameters * const params);
 
-void deleteModelFunctions(model_functions *functions,const model_parameters * const params);
+void deleteModelFunctions(model_functions *functions);
 
 #endif  /* !STRUCTURES_H */

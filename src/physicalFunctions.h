@@ -37,9 +37,10 @@
 //*************Computational functions*************
 
 
-
-void setRho(double* rho, double *rhoIce, double* temp, int thickness,double acc);
 //Compute the density profile
+void setRho_FIRN(double* rho, double *rhoIce, double* temp, int thickness,double acc);
+void setRho_CONST(double* rho, double *rhoIce, double* temp, int thickness,double acc);
+
 
 void setHeatVar(double *K,double *cp,double *told,int thickness,double *rho, double* rhoIce);
 //Compute the values of the K and c thermal variables, called by spin_up() and t_solve()

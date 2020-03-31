@@ -1,5 +1,6 @@
 #include "structures.h"
 #include "io.h"
+#include "physicalFunctions.h"
 
 bool initTimeSeries(time_series *ts, model_parameters *params)
 {
@@ -312,19 +313,31 @@ void deleteModelData(model_data *data,const model_parameters * const params)
 
 bool initModelFunctions(model_functions *functions,const model_parameters * const params)
 {
+  if(params->RHO1==RHO_FIRN)
+  {
+    functions->setRho=&setRho_FIRN;
+  }
+  else if(params->RHO1==RHO_CONST)
+  {
+    functions->setRho=&setRho_CONST;
+  }
+  else
+  {
+    return false;
+  }
   return true;
 }
 
-void deleteModelFunctions(model_functions *functions,const model_parameters * const params)
+void deleteModelFunctions(model_functions *functions)
 {
   free(functions->setRho);
-  free(functions->setHeatVar);
-  free(functions->computeMelt);
-  free(functions->wDef);
-  free(functions->setABW);
-  free(functions->setSe);
-  free(functions->getDwdz);
-  free(functions->getA);
-  free(functions->getDudz);
+  // free(functions->setHeatVar);
+  // free(functions->computeMelt);
+  // free(functions->wDef);
+  // free(functions->setABW);
+  // free(functions->setSe);
+  // free(functions->getDwdz);
+  // free(functions->getA);
+  // free(functions->getDudz);
 
 }

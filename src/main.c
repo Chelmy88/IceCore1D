@@ -29,7 +29,7 @@
 #include "structures.h"
 #include "runModel.h"
 
-bool mainLoop(model_parameters* params,time_series* ts, double**  summary);
+bool mainLoop(model_parameters* params,time_series* ts, model_functions* functions, double**  summary);
 
 int main()
 {
@@ -55,7 +55,16 @@ int main()
     printf("[E] Error reading the time series files. Exiting now\n");
     exit(EXIT_FAILURE);
   }
-
+  //Tables to load data
+  model_functions functions;
+  if(!initModelFunctions(&functions,&params))
+  {
+    deleteModelFunctions(&functions);
+    deleteTimeSeries(&ts);
+    deleteModelParameters(&params);
+    printf("[E] Error Initializing model functions. Exiting now\n");
+    exit(EXIT_FAILURE);
+  }
 
 
   //Define a table to store a summary of the various runs performed
@@ -67,7 +76,7 @@ int main()
   }
 
   size_t exit_status;
-  if(mainLoop(&params, &ts, summary))
+  if(mainLoop(&params, &ts, &functions, summary))
   {
     printf("Run OK -- in %f seconds\n",(double)(omp_get_wtime() - begin));
     exit_status=0;
@@ -78,11 +87,12 @@ int main()
 
   deleteModelParameters(&params);
   deleteTimeSeries(&ts);
+  deleteModelFunctions(&functions);
 
   return exit_status;
 }
 
-bool mainLoop(model_parameters* params, time_series* ts, double**  summary){
+bool mainLoop(model_parameters* params, time_series* ts, model_functions* functions, double**  summary){
 
   bool succes=true;
   int tot=params->values.tot; //Number of run, the size of the summary table should be bigger
@@ -122,7 +132,7 @@ bool mainLoop(model_parameters* params, time_series* ts, double**  summary){
 
   //printf("\n I'm running with : %f %f %f %f %f %f %f %f \n",mw, QG, tCor, tCor2, pCor, deltaH, len, flat);
 
-  runModel(&data,params,ts);
+  runModel(&data,params,ts,functions);
 
   // // POST PROCESSING//
   // //Compute the difference with the age profile for 213 points and compute the mean of the difference
@@ -267,6 +277,7 @@ bool mainLoop(model_parameters* params, time_series* ts, double**  summary){
      // saveTemp(temperature);
   fflush(stdout);
   deleteModelData(&data,params);
+
 
 }}}}}}}}
   for (size_t i = 0; i < 15000; i++)

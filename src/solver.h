@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include "define.h"
+#include "structures.h"
 #include "physicalFunctions.h"
 
 //*************Computational function*************
@@ -50,10 +51,10 @@
 //double b[Z]  --> Vector to be multiplied with he inverse matrix in the C-N scheme (explicit part)
 
 
-void spin_up(double *temperature, double thick, double tsurf,double acc, double QG, double mw,double* tborder, double deltaH,int border,double len, double flat, double* melt, double *density);
+void spin_up(const model_functions * const functions, double *temperature, double thick, double tsurf,double acc, double QG, double mw,double* tborder, double deltaH,int border,double len, double flat, double* melt, double *density);
 //Perform the spin_up of the model for the given time using the CN scheme
 
-void t_solve(double *temperature, int time, double thickness, double thicknessFuture, double tsurf,double acc,double* melt, double QG, double mw, double* tborder,double deltaH, int border,double len, double flat, double* freeze, double *density);
+void t_solve(const model_functions * const functions, double *temperature, int time, double thickness, double thicknessFuture, double tsurf,double acc,double* melt, double QG, double mw, double* tborder,double deltaH, int border,double len, double flat, double* freeze, double *density);
 //Getting the 1D array temperature a t-1, return the temperature at T.
 //This function calls various function to compute all the needed parameters
 //Finally, this function calls the defined algorithm to compute the temperature
