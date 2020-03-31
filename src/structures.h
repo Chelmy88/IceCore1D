@@ -6,21 +6,21 @@
 #include "define.h"
 
 typedef struct _model_values {
-  double* mw;
+  real* mw;
   size_t mw_n;
-  double* QG;
+  real* QG;
   size_t QG_n;
-  double* TCor;
+  real* TCor;
   size_t TCor_n;
-  double* TCor2;
+  real* TCor2;
   size_t TCor2_n;
-  double* PCor;
+  real* PCor;
   size_t PCor_n;
-  double* deltaH;
+  real* deltaH;
   size_t deltaH_n;
-  double* len;
+  real* len;
   size_t len_n;
-  double* flat;
+  real* flat;
   size_t flat_n;
   size_t tot;
 }model_values;
@@ -65,11 +65,11 @@ void deleteModelParameters(model_parameters *params);
 
 // Structure to store time series informations
 typedef struct _time_series {
-  double* surfaceTempLoad;
-  double* iceThicknessLoad;
-  double* accLoad;
-  double* age;
-  double* borehole_temp;
+  real* surfaceTempLoad;
+  real* iceThicknessLoad;
+  real* accLoad;
+  real* age;
+  real* borehole_temp;
 } time_series;
 
 
@@ -77,6 +77,65 @@ bool initTimeSeries(time_series *ts, model_parameters *params);
 
 void deleteTimeSeries(time_series *ts);
 
+// Structure to store model data while running
+typedef struct _model_data {
+  real** temperature;
+  real** density;
+  real* tnew;
+  real* surfaceTemp;
+  real* iceThickness;
+  real* acc;
+  real* acc2;
+  real* melt;
+  real* freeze;
+  real mw;
+  real QG;
+  real tCor;
+  real tCor2;
+  real pCor;
+  real deltaH;
+  real len;
+  real flat;
+} model_data;
 
+bool initModelData(model_data *data,const model_parameters * const params,size_t mwL,
+                   size_t QGL,size_t TcorL, size_t TcorL2,size_t PcorL,size_t deltaHL,size_t lenL,size_t flatL);
+
+void deleteModelData(model_data *data,const model_parameters * const params);
+
+
+typedef struct _model_functions {
+  void (*setRho)(double* rho, double *rhoIce, double* temp, int thickness,double acc);
+  //Compute the density profile
+
+  void (*setHeatVar)(double *K,double *cp,double *told,int thickness,double *rho, double* rhoIce);
+  //Compute the values of the K and c thermal variables, called by spin_up() and t_solve()
+
+  void (*computeMelt)(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thickness,double delz,double QG, double* f);
+  //Compute the melt rate, called by spin_up() and t_solve()
+
+  double (*wDef)(double z, double thickness,double mw);
+  //Compute the flux shape function values, called by spin_up() and t_solve()
+
+  void (*setABW)(double* a,double* b,double* w,double* cp,double* K,double* rho,double delt,double delz,double acc,double m,double dhdt,double* w_def,int thickness, double* rhoIce);
+  //Compute the vertical velocity and the a,b (explicit scheme) or alpha,beta(CN scheme) values, called by spin_up() and t_solve()
+
+  void (*setSe)(double *se,double *rho,double *w, double *cp, double *K,double delt, int thickness, double* told, double deltaH,double dhdt,double * tborder,int border,double len, double flat);
+  //Compute the internal energy production and the lateral heat flux (valley effect)
+
+  double (*getDwdz)(double*w,int z,int thickness);
+  //Compute the vertical derivative of the vertical velocity profile, called by setSe()
+
+  double (*getA)(double t);
+  //Compute the creep factor A values from piecewise linear approximation, called by setSe()
+
+  double (*getDudz)(double zh);
+  //Compute the vertical derivative of horizontal velocity profile from piecewise linear approximation, called by setSe()
+
+} model_functions;
+
+bool initModelFunctions(model_functions *functions,const model_parameters * const params);
+
+void deleteModelFunctions(model_functions *functions,const model_parameters * const params);
 
 #endif  /* !STRUCTURES_H */

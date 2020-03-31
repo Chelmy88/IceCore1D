@@ -1,123 +1,140 @@
 #include "runModel.h"
 #include <time.h>
 
-void runModel(double* tnew, double* surfaceTemp,double* iceThickness,double* acc,double* acc2,
-              double* melt,double* freeze, double** temperature, double** density,
-              const double* const surfaceTempLoad,const double* const iceThicknessLoad,
-              const double* const accLoad,
-              const double mw, const double QG, const double tCor, const double tCor2, const double pCor,
-              const double deltaH, const double len,const double flat)
+void runModel(model_data *data,const model_parameters * const params,
+              const time_series * const ts)
 {
   size_t li=0;
+  size_t Z1=params->Z1;
+  size_t T1=params->T1;
 
-  double spin_up_temp[Z],spin_up_temp2[Z],temperatureBorder[Z]= {0};
-  //Dynamically allow the memory for the temperature matrix
+  real *spin_up_temp,*spin_up_temp2,*temperatureBorder,*dens;
 
-  double dens[Z]= {0};
+  spin_up_temp = calloc( params->Z1, sizeof(real));
+  spin_up_temp2 = calloc( params->Z1, sizeof(real));
+  temperatureBorder = calloc( params->Z1, sizeof(real));
+  dens = calloc( params->Z1, sizeof(real));
+
+
   // SET BC VALUES //
   //Loop over the time steps to implement the correction on the time series
-  for(li=0; li<T; li++)
+  for(li=0; li<T1; li++)
   {
-    surfaceTemp[li]=surfaceTempLoad[li];
-    iceThickness[li]=iceThicknessLoad[li];
-    acc[li]=accLoad[li]*3600*24*365/31556926;
+    data->surfaceTemp[li]=ts->surfaceTempLoad[li];
+    data->iceThickness[li]=ts->iceThicknessLoad[li];
+    data->acc[li]=ts->accLoad[li]*3600*24*365/31556926;
     //surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
   }
-  double t0=surfaceTemp[T-1];
-  double tLGM=surfaceTemp[T-257];
+  real t0=data->surfaceTemp[T1-1];
+  real tLGM=data->surfaceTemp[T1-257];
 
-  for(li=0; li<T; li++){
-    surfaceTemp[li]=(surfaceTemp[li]-t0)*(tLGM-t0+tCor2)/(tLGM-t0)+t0;
-    if(T==40001){
+  for(li=0; li<T1; li++){
+    data->surfaceTemp[li]=(data->surfaceTemp[li]-t0)*(tLGM-t0+data->tCor2)/(tLGM-t0)+t0;
+    if(T1==40001){
       if (li>39980 && li<40001)
         {
-        surfaceTemp[li]=surfaceTemp[li]-tCor;
+        data->surfaceTemp[li]=data->surfaceTemp[li]-data->tCor;
       }
     }
-    else if(T==10001){
+    else if(T1==10001){
       if (li>9980 && li<10001)
       {
-        surfaceTemp[li]=surfaceTemp[li]-tCor;
+        data->surfaceTemp[li]=data->surfaceTemp[li]-data->tCor;
       }
     }
-    acc[li]+=acc[li]*pCor/100.;
-    acc2[li]=acc[li]*31556926;
+    data->acc[li]+=data->acc[li]*data->pCor/100.;
+    data->acc2[li]=data->acc[li]*31556926;
   }
   // set the initial temperature profile
-  double Tmelt=273.16-9.8*7.42*1E-8*921*iceThickness[0];
-  double Tmelt2=273.16-9.8*7.42*1E-8*921*(iceThickness[0]-deltaH);
-  double Tsurf=surfaceTemp[0];
+  real Tmelt=273.16-9.8*7.42*1E-8*921*data->iceThickness[0];
+  real Tmelt2=273.16-9.8*7.42*1E-8*921*(data->iceThickness[0]-data->deltaH);
+  real Tsurf=data->surfaceTemp[0];
 
   // SPIN UP MODEL//
 
   //Spin up the second profile used for the valley effect
-  if(deltaH!=0)
+  if(data->deltaH!=0)
   {
-    for(li=0; li <=(size_t)(iceThickness[0]-deltaH); li++)
+    for(li=0; li <=(size_t)(data->iceThickness[0]-data->deltaH); li++)
     {
-      spin_up_temp2[li]=Tmelt2+(Tsurf-Tmelt2)*pow(li/(iceThickness[0]-deltaH),1);
+      spin_up_temp2[li]=Tmelt2+(Tsurf-Tmelt2)*pow(li/(data->iceThickness[0]-data->deltaH),1);
     }
-    spin_up(spin_up_temp2,iceThickness[0]-deltaH,surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,1,len,flat,melt,dens);
-    for(li=0; li <=(size_t)(iceThickness[0]-deltaH); li++)
+    spin_up(spin_up_temp2,data->iceThickness[0]-data->deltaH,data->surfaceTemp[0],data->acc[0],
+            data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,data->flat,
+            data->melt,dens);
+    for(li=0; li <=(size_t)(data->iceThickness[0]-data->deltaH); li++)
     {
       temperatureBorder[li]=spin_up_temp2[li];
     }
   }
   //Spin up the main profile first without the valley effect and a second time if the valley effect is enabled
-  for(li=0; li <=(size_t)iceThickness[0]; li++)
+  for(li=0; li <=(size_t)data->iceThickness[0]; li++)
   {
-    spin_up_temp[li]=Tmelt+(Tsurf-Tmelt)*pow(li/iceThickness[0],1);
+    spin_up_temp[li]=Tmelt+(Tsurf-Tmelt)*pow(li/data->iceThickness[0],1);
   }
-  spin_up(spin_up_temp,iceThickness[0],surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,1,len,flat,melt, dens);
+  spin_up(spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+          data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,
+          data->flat,data->melt,dens);
 
-  if(deltaH!=0){
-    spin_up(spin_up_temp,iceThickness[0],surfaceTemp[0],acc[0],QG,mw,temperatureBorder,deltaH,0,len,flat,melt, dens);
+  if(data->deltaH!=0){
+    spin_up(spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+            data->QG,data->mw,temperatureBorder,data->deltaH,0,data->len,
+            data->flat,data->melt,dens);
   }
 
-  for(li=0; li<Z; li++)
+  for(li=0; li<Z1; li++)
   {
-    temperature[li][0]=spin_up_temp[li];
-    density[li][0]=dens[li];
-    tnew[li]=spin_up_temp[li];
+    data->temperature[li][0]=spin_up_temp[li];
+    data->density[li][0]=dens[li];
+    data->tnew[li]=spin_up_temp[li];
   }
 
   // RUN MODEL//
 
   //Loop over all the time steps
-  int time=1;
-  float time_for_loop=0;
-  for (time=1; time<T; time++)
+  size_t time=1;
+  real time_for_loop=0;
+  for (time=1; time<T1; time++)
   {
-    double begin2=omp_get_wtime();
-    for(li=0; li <Z; li++)
+    real begin2=omp_get_wtime();
+    for(li=0; li <Z1; li++)
     {
-      tnew[li]=0;
+      data->tnew[li]=0;
       dens[li]=0;
     }
-    for(li=0; li <=(size_t)iceThickness[time-1]; li++)
+    for(li=0; li <=(size_t)data->iceThickness[time-1]; li++)
     {
-      tnew[li]=temperature[li][time-1];
+      data->tnew[li]=data->temperature[li][time-1];
     }
-    if(deltaH!=0)
+    if(data->deltaH!=0)
     {
-      t_solve(temperatureBorder,time, iceThickness[time-1]-deltaH, iceThickness[time]-deltaH, surfaceTemp[time],acc[time],melt,QG,mw,temperatureBorder,deltaH,1,len,flat,freeze,dens);
+      t_solve(temperatureBorder,time, data->iceThickness[time-1]-data->deltaH,
+              data->iceThickness[time]-data->deltaH, data->surfaceTemp[time],
+              data->acc[time],data->melt,data->QG,data->mw,temperatureBorder,
+              data->deltaH,1,data->len,data->flat,data->freeze,dens);
     }
-    t_solve(tnew,time, iceThickness[time-1], iceThickness[time], surfaceTemp[time],acc[time],melt,QG,mw,temperatureBorder,deltaH,0,len,flat,freeze,dens);
-    tempScale(tnew,  iceThickness[time-1], iceThickness[time], surfaceTemp[time]);
-    if(deltaH!=0)
+    t_solve(data->tnew,time, data->iceThickness[time-1], data->iceThickness[time],
+            data->surfaceTemp[time],data->acc[time],data->melt,data->QG,data->mw,
+            temperatureBorder,data->deltaH,0,data->len,data->flat,data->freeze,dens);
+
+    tempScale(data->tnew,  data->iceThickness[time-1], data->iceThickness[time],
+              data->surfaceTemp[time]);
+
+    if(data->deltaH!=0)
     {
-      tempScale(temperatureBorder,iceThickness[time-1]-deltaH, iceThickness[time]-deltaH, surfaceTemp[time]);
+      tempScale(temperatureBorder,data->iceThickness[time-1]-data->deltaH,
+                data->iceThickness[time]-data->deltaH, data->surfaceTemp[time]);
     }
-    for(li=0; li <=(size_t)iceThickness[time]; li++)
+    for(li=0; li <=(size_t)data->iceThickness[time]; li++)
     {
-      temperature[li][time]=tnew[li];
-      density[li][time]=dens[li];
+      data->temperature[li][time]=data->tnew[li];
+      data->density[li][time]=dens[li];
     }
-    time_for_loop+=(double)(omp_get_wtime() - begin2); //Store the loop time
+    time_for_loop+=(real)(omp_get_wtime() - begin2); //Store the loop time
   }
 //melt[0]=melt[1];
 //Print the time for the run and the individual loop mean time
   printf("\nIntegration ok in: %f secondes  ",time_for_loop);
-  printf("Mean run time: %f miliseconds\n",time_for_loop/(T-1.)*1000.);
+  printf("Mean run time: %f miliseconds\n",time_for_loop/(T1-1.)*1000.);
 
 }

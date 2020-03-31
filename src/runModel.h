@@ -6,11 +6,7 @@
 #include "solver.h"
 #include "structures.h"
 
-void runModel(double* tnew, double* surfaceTemp,double* iceThickness,double* acc,double* acc2,
-              double* melt,double* freeze, double** temperature, double** density,
-              const double* const surfaceTempLoad,const double* const iceThicknessLoad,
-              const double* const accLoad,
-              const double mw, const double QG, const double tCor, const double tCor2, const double pCor,
-              const double deltaH, const double len,const double flat);
+void runModel(model_data *data,const model_parameters * const params,
+              const time_series * const time_series);
 
 #endif  /* !RUNMODEL_H */

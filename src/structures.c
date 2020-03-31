@@ -3,7 +3,7 @@
 
 bool initTimeSeries(time_series *ts, model_parameters *params)
 {
-  ts->surfaceTempLoad=calloc(T,sizeof(double));
+  ts->surfaceTempLoad=calloc(params->T1,sizeof(real));
   if(!ts->surfaceTempLoad)
   {
     return false;
@@ -13,7 +13,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params)
     return false;
   }
 
-  ts->iceThicknessLoad=calloc(T,sizeof(double));
+  ts->iceThicknessLoad=calloc(params->T1,sizeof(real));
   if(!ts->iceThicknessLoad)
   {
     return false;
@@ -23,7 +23,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params)
     return false;
   }
 
-  ts->accLoad=calloc(T,sizeof(double));
+  ts->accLoad=calloc(params->T1,sizeof(real));
   if(!ts->accLoad)
   {
     return false;
@@ -33,7 +33,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params)
     return false;
   }
 
-  ts->age=calloc(Z,sizeof(double));
+  ts->age=calloc(params->Z1,sizeof(real));
   if(!ts->age)
   {
     return false;
@@ -43,7 +43,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params)
     return false;
   }
 
-  ts->borehole_temp=calloc(Z,sizeof(double));
+  ts->borehole_temp=calloc(params->Z1,sizeof(real));
   if(!ts->borehole_temp)
   {
     return false;
@@ -197,5 +197,134 @@ void deleteModelParameters(model_parameters *params)
   free(params->values.flat);
 
   printf("[I] Parameters correctly deleted\n");
+
+}
+
+
+bool initModelData(model_data *data,const model_parameters * const params,size_t mwL,
+                   size_t QGL,size_t TcorL, size_t TcorL2,size_t PcorL,size_t deltaHL,
+                   size_t lenL,size_t flatL)
+{
+  data->temperature = calloc( params->Z1, sizeof(real*));
+  if(!data->temperature)
+  {
+    return false;
+  }
+  for (int li = 0; li < params->Z1; li++)
+  {
+    data->temperature[li] = calloc(params->T1, sizeof(real));
+    if(!data->temperature[li])
+    {
+      return false;
+    }
+  }
+
+  data->density = calloc( params->Z1, sizeof(real*));
+  if(!data->density)
+  {
+    return false;
+  }
+  for (int li = 0; li < params->Z1; li++)
+  {
+    data->density[li] = calloc(params->T1, sizeof(real));
+    if(!data->density[li])
+    {
+      return false;
+    }
+  }
+
+  data->surfaceTemp = calloc( params->T1, sizeof(real*));
+  if(!data->surfaceTemp)
+  {
+    return false;
+  }
+
+  data->iceThickness = calloc( params->T1, sizeof(real*));
+  if(!data->iceThickness)
+  {
+    return false;
+  }
+
+  data->acc = calloc( params->T1, sizeof(real*));
+  if(!data->acc)
+  {
+    return false;
+  }
+
+  data->acc2 = calloc( params->T1, sizeof(real*));
+  if(!data->acc2)
+  {
+    return false;
+  }
+
+  data->melt = calloc( params->T1, sizeof(real*));
+  if(!data->melt)
+  {
+    return false;
+  }
+
+  data->freeze = calloc( params->T1, sizeof(real*));
+  if(!data->freeze)
+  {
+    return false;
+  }
+
+  data->tnew = calloc( params->Z1, sizeof(real*));
+  if(!data->tnew)
+  {
+    return false;
+  }
+
+  data->mw=params->values.mw[mwL];
+  data->QG=params->values.QG[QGL];
+  data->tCor=params->values.TCor[TcorL];
+  data->tCor2=params->values.TCor2[TcorL2];
+  data->pCor=params->values.PCor[PcorL];
+  data->deltaH=params->values.deltaH[deltaHL];
+  data->len=params->values.len[lenL];
+  data->flat=params->values.flat[flatL];
+
+  return true;
+}
+
+void deleteModelData(model_data *data,const model_parameters * const params)
+{
+  for (int li = 0; li < params->Z1; li++)
+  {
+    double* currentIntPtr = data->temperature[li];
+    free(currentIntPtr);
+  }
+  for (int li = 0; li < params->Z1; li++)
+  {
+    double* currentIntPtr = data->density[li];
+    free(currentIntPtr);
+  }
+  free(data->temperature);
+  free(data->density);
+  free(data->tnew);
+  free(data->surfaceTemp);
+  free(data->iceThickness);
+  free(data->acc);
+  free(data->acc2);
+  free(data->melt);
+  free(data->freeze);
+}
+
+bool initModelFunctions(model_functions *functions,const model_parameters * const params)
+{
+  return true;
+}
+
+void deleteModelFunctions(model_functions *functions,const model_parameters * const params)
+{
+  free(functions->setRho);
+  free(functions->setHeatVar);
+  free(functions->computeMelt);
+  free(functions->wDef);
+  free(functions->setABW);
+  free(functions->setSe);
+  free(functions->getDwdz);
+  free(functions->getA);
+  free(functions->getDudz);
 
 }
