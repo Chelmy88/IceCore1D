@@ -16,4 +16,6 @@
 #define INTERNAL_ENERGY "OFF" //Decide wether internal energy should be included or not
 #define MELTING "FREE_MELT" //Basal malting-refeezing handeling : FREE_MELT->no basal refreezing, temperature decreases if there is no melt, FREEZING_NO_ICE -> some refreezing is possible, but the ice dissapear (i.e. bottom temp is always tmelt, no other difference), FREEZING -> some water is allowed to refreez, when melting comes back, first this ice is melted before real melting occures (refreezing and melting of frozen ice have no inflence on vertical velocity).
 
+typedef double real;
+
 #endif  /* !DEFINE_H */
