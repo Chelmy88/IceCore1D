@@ -3,14 +3,14 @@ ifdef OPTIM
 endif
 
 ifdef PROFILE
-    PROFILEFLAGS+=-pg
+    PROFILEFLAGS+=-p
 endif
 
-OPTIMFLAGS?=-O0
+OPTIMFLAGS?=-O0 -Wall -Wextra -Wpadded
 
-CC=clang
+CC=gcc-9
 LD=${CC}
-CFLAGS+=-Wall -Wextra -Wpadded -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
+CFLAGS+= -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
 LDFLAGS+= -lm
 
 SOURCEDIR=src
