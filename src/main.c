@@ -59,7 +59,6 @@ int main()
   model_functions functions;
   if(!initModelFunctions(&functions,&params))
   {
-    deleteModelFunctions(&functions);
     deleteTimeSeries(&ts);
     deleteModelParameters(&params);
     printf("[E] Error Initializing model functions. Exiting now\n");
@@ -87,7 +86,6 @@ int main()
 
   deleteModelParameters(&params);
   deleteTimeSeries(&ts);
-  deleteModelFunctions(&functions);
 
   return exit_status;
 }

@@ -19,6 +19,7 @@
 #include <math.h>
 #include <string.h>
 #include "define.h"
+#include "structures.h"
 
 
 //*******Definition the  main variables defined in main.h***********
@@ -41,9 +42,23 @@
 void setRho_FIRN(double* rho, double *rhoIce, double* temp, int thickness,double acc);
 void setRho_CONST(double* rho, double *rhoIce, double* temp, int thickness,double acc);
 
-
-void setHeatVar(double *K,double *cp,double *told,int thickness,double *rho, double* rhoIce);
 //Compute the values of the K and c thermal variables, called by spin_up() and t_solve()
+void setHeatVar(const model_functions * const functions, double *K,double *cp,double *told,int thickness,double *rho, double* rhoIce);
+
+void setThermalIce_CP(double *K,double *temperature,int thickness);
+
+void setThermalIce_GO(double *K,double *temperature,int thickness);
+
+void setThermalFirn_CP(double *K,double *rho, double* rhoIce,int thickness);
+
+void setThermalFirn_SC(double *K,double *rho, double* rhoIce,int thickness);
+
+void setHeatCapacity(double *cp,double *temperature,int thickness);
+
+
+
+
+
 
 void computeMelt(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thickness,double delz,double QG, double* f);
 //Compute the melt rate, called by spin_up() and t_solve()

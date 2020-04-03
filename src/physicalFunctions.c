@@ -41,6 +41,9 @@ void setRho_FIRN(double* rho, double *rhoIce,double* temp, int thickness,double 
 
 void setRho_CONST(double* rho, double *rhoIce,double* temp, int thickness,double acc)
 {
+    UNUSED(rhoIce);
+    UNUSED(temp);
+    UNUSED(acc);
     for (int li=0; li<=thickness; li++)
     {
          rho[li]=921;
@@ -50,47 +53,56 @@ void setRho_CONST(double* rho, double *rhoIce,double* temp, int thickness,double
 
 
 
-void setHeatVar(double *K,double *cp,double *told,int thickness, double *rho, double *rhoIce)
+void setHeatVar(const model_functions * const functions, double *K,double *cp,double *temperature,int thickness, double *rho, double *rhoIce)
 {
-    int li=0;
-    for(li=0; li<=thickness; li++)
-    {
-    	//if(strcmp(THERMAL,"CP")==0){
-          //  K[li]=9.828*exp(-0.0057*told[li]);
-           // cp[li]=152.5 + 7.122*270.4;
-        //}
-        //else{
-          //  K[li]=9.828*exp(-0.0057*told[li]);
-           // if(strcmp(THERMAL,"SC")==0){
-             //   K[li]=K[li]*pow((rho[li]/rhoIce[li]),2-0.5*rho[li]/rhoIce[li]);
-            //}
-            //else if (strcmp(THERMAL,"FI")==0){
-              //  K[li]=2.*K[li]*rho[li]/(3*rhoIce[li]-rho[li]);
-                //K[li]=1.1*K[li];
-            //}
-            //cp[li]=152.5 + 7.122*told[li];
-       // }
+    functions->setThermalIce(K, temperature, thickness);
 
-    	// Ice thermal conductivity
-        if(strcmp(THERMAL,"CP")==0){
-            K[li]=9.828*exp(-0.0057*told[li]);
-            cp[li]=152.5 + 7.122*told[li];
-        }
-        else if(strcmp(THERMAL,"GO")==0){
-            K[li]=2.22*(1-0.0067*(told[li]-273.15));
-            cp[li]=152.5 + 7.122*told[li];
-        }
+    functions->setThermalFirn(K, rho, rhoIce, thickness);
 
-      	// Firn thermal conductivity
-        if(strcmp(FIRN,"SC")==0){
-            K[li]=K[li]*pow((rho[li]/rhoIce[li]),2-0.5*rho[li]/rhoIce[li]);
-        }
-        else if(strcmp(FIRN,"CP")==0){
-            K[li]=2.*K[li]*rho[li]/(3*rhoIce[li]-rho[li]);
-        }
-
-    }
+    functions->setHeatCapacity(cp, temperature, thickness);
 }
+
+void setThermalIce_CP(double *K,double *temperature,int thickness)
+{
+  for(int li=0; li<=thickness; li++)
+  {
+    K[li]=9.828*exp(-0.0057*temperature[li]);
+  }
+}
+
+void setThermalIce_GO(double *K,double *temperature,int thickness)
+{
+  for(int li=0; li<=thickness; li++)
+  {
+    K[li]=2.22*(1-0.0067*(temperature[li]-273.15));
+  }
+}
+
+void setThermalFirn_CP(double *K,double *rho,double *rhoIce,int thickness)
+{
+  for(int li=0; li<=thickness; li++)
+  {
+    K[li]=2.*K[li]*rho[li]/(3*rhoIce[li]-rho[li]);
+  }
+}
+
+void setThermalFirn_SC(double *K,double *rho,double *rhoIce,int thickness)
+{
+  for(int li=0; li<=thickness; li++)
+  {
+    K[li]=K[li]*pow((rho[li]/rhoIce[li]),2-0.5*rho[li]/rhoIce[li]);
+  }
+}
+
+void setHeatCapacity(double *cp,double *temperature,int thickness)
+{
+  for(int li=0; li<=thickness; li++)
+  {
+    cp[li]=152.5 + 7.122*temperature[li];
+  }
+}
+
+
 
 void computeMelt(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thick,double delz,double QG,double* f)
 {

@@ -313,6 +313,7 @@ void deleteModelData(model_data *data,const model_parameters * const params)
 
 bool initModelFunctions(model_functions *functions,const model_parameters * const params)
 {
+
   if(params->RHO1==RHO_FIRN)
   {
     functions->setRho=&setRho_FIRN;
@@ -323,21 +324,39 @@ bool initModelFunctions(model_functions *functions,const model_parameters * cons
   }
   else
   {
+    functions->setRho=NULL;
     return false;
   }
+
+  if(params->THERMAL1==TH_CP)
+  {
+    functions->setThermalIce=&setThermalIce_CP;
+  }
+  else if(params->THERMAL1==TH_GO)
+  {
+    functions->setThermalIce=&setThermalIce_GO;
+  }
+  else
+  {
+    functions->setThermalIce=NULL;
+    return false;
+  }
+
+  if(params->FIRN1==FI_CP)
+  {
+    functions->setThermalFirn=&setThermalFirn_CP;
+  }
+  else if(params->FIRN1==FI_SC)
+  {
+    functions->setThermalFirn=&setThermalFirn_SC;
+  }
+  else
+  {
+    functions->setThermalFirn=NULL;
+    return false;
+  }
+
+  functions->setHeatCapacity=&setHeatCapacity;
+
   return true;
-}
-
-void deleteModelFunctions(model_functions *functions)
-{
-  free(functions->setRho);
-  // free(functions->setHeatVar);
-  // free(functions->computeMelt);
-  // free(functions->wDef);
-  // free(functions->setABW);
-  // free(functions->setSe);
-  // free(functions->getDwdz);
-  // free(functions->getA);
-  // free(functions->getDudz);
-
 }

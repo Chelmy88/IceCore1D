@@ -28,7 +28,7 @@ typedef struct _model_values {
 enum SAVE_TYPE_ENUM{ST_MATRIX, ST_VECTOR, ST_UNSET};
 enum SCHEME_ENUM {SC_CN, SC_EXPL, SC_UNSET};
 enum THERMAL_ENUM {TH_CP, TH_GO, TH_UNSET};
-enum FIRN_ENUM {FI_SC, FI_CP, FI_FI, FI_UNSET};
+enum FIRN_ENUM {FI_SC, FI_CP, FI_UNSET};
 enum RHO_TYPE_ENUM {RHO_FIRN, RHO_CONST, RHO_UNSET};
 enum VERTICAL_PROFILE_ENUME {VP_FI, VP_PA, VP_UNSET};
 enum INTERNAL_ENERGY_ENUM {IE_ON, IE_OFF, IE_UNSET};
@@ -108,8 +108,10 @@ typedef struct _model_functions {
   void (*setRho)(double* rho, double *rhoIce, double* temp, int thickness,double acc);
   //Compute the density profile
 
-  void (*setHeatVar)(double *K,double *cp,double *told,int thickness,double *rho, double* rhoIce);
   //Compute the values of the K and c thermal variables, called by spin_up() and t_solve()
+  void (*setThermalIce)(double *K,double *tempersture,int thickness);
+  void (*setThermalFirn)(double *K,double *rho, double* rhoIce,int thickness);
+  void (*setHeatCapacity)(double *cp,double *temperature,int thickness);
 
   void (*computeMelt)(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thickness,double delz,double QG, double* f);
   //Compute the melt rate, called by spin_up() and t_solve()
@@ -135,7 +137,5 @@ typedef struct _model_functions {
 } model_functions;
 
 bool initModelFunctions(model_functions *functions,const model_parameters * const params);
-
-void deleteModelFunctions(model_functions *functions);
 
 #endif  /* !STRUCTURES_H */

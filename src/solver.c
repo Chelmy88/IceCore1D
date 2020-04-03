@@ -63,7 +63,7 @@ void spin_up(const model_functions * const functions, double *told, double thick
     {
         double tint[Z],rho_first[Z],se_first[Z]= {0};
         functions->setRho(rho,rhoIce, told, thickness, acc);
-        setHeatVar(K, cp, told, thickness,rho,rhoIce);
+        setHeatVar(functions, K, cp, told, thickness,rho,rhoIce);
         computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         told[0]=tground;
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
@@ -75,7 +75,7 @@ void spin_up(const model_functions * const functions, double *told, double thick
         }
         // Second pass
         functions->setRho(rho,rhoIce, tint, thickness, acc);
-        setHeatVar(K, cp, tint, thickness,rho,rhoIce);
+        setHeatVar(functions,K, cp, tint, thickness,rho,rhoIce);
         computeMelt(&m,&tground,rho_first,L,K[1],cp[0],tint[1],tint[0],thick,delz,QG,&f);
         tint[0]=tground;
         setABW(a2,b2,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
@@ -131,7 +131,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
         double cp0,K1=0;
 
         functions->setRho(rho,rhoIce, told, thickness, acc);
-        setHeatVar(K, cp, told, thickness,rho,rhoIce);
+        setHeatVar(functions,K, cp, told, thickness,rho,rhoIce);
         computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
         setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
@@ -149,7 +149,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
         for (i=0; i<(int)rep; i++)
         {
             functions->setRho(rho,rhoIce, tint, thickness, acc);
-            setHeatVar(K, cp, tint, thickness,rho,rhoIce);
+            setHeatVar(functions,K, cp, tint, thickness,rho,rhoIce);
             for(li=0; li <=thickness; li++)
             {
                 rho_mean[li]=(rho[li]+rho_first[li])/2;
@@ -179,7 +179,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
     else if(strcmp(TYPE,"EXPL")==0) // Explicit scheme
     {
         functions->setRho(rho,rhoIce, told, thickness, acc);
-        setHeatVar(K, cp, told, thickness,rho,rhoIce);
+        setHeatVar(functions,K, cp, told, thickness,rho,rhoIce);
         computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
         setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);

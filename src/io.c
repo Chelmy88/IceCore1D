@@ -525,10 +525,6 @@ bool setParameter(model_parameters* const params, const char* const arg,
     {
       params->FIRN1=FI_CP;
     }
-    else if (strcmp(val,"FI")==0)
-    {
-      params->FIRN1=FI_FI;
-    }
     else
     {
       printf("[E] Unknown value %s for FIRN1\n",val);
