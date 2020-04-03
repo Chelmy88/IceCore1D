@@ -18,4 +18,6 @@
 
 typedef double real;
 
+#define UNUSED(x) (void)(x)
+
 #endif  /* !DEFINE_H */
