@@ -592,7 +592,7 @@ bool setParameter(model_parameters* const params, const char* const arg,
     {
       params->MELTING1=ME_FREE_MELT;
     }
-    else if (strcmp(val,"NO_ICE")==0)
+    else if (strcmp(val,"FREEZING_NO_ICE")==0)
     {
       params->MELTING1=ME_FREEZING_NO_ICE;
     }

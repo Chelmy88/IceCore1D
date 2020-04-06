@@ -40,7 +40,10 @@
 //double b[Z]  --> Vector to be multiplied with he inverse matrix in the C-N scheme (explicit part)
 
 
-void spin_up(const model_functions * const functions, double *told, double thick, double tsurf,double acc,double QG,double mw,double* tborder, double deltaH,int border,double len, double flat,double* melt, double *density)
+void spin_up(const model_functions * const functions, double *told, double thick,
+            double tsurf,double acc,double QG,double mw,double* tborder,
+            double deltaH,int border,double len, double flat,
+            double* melt, double *density)
 {
     // Perform a spin up for the time indicated in header (time in hyr). The spin up is done with a 2-passes implicit scheme.
     double begin3=omp_get_wtime();
@@ -57,17 +60,17 @@ void spin_up(const model_functions * const functions, double *told, double thick
     double se[Z]= {0};
     for(li=0; li <=thickness; li++)
     {
-        w_def[li]=wDef ((double) li, (double) thickness,mw);
+        w_def[li]=functions->wDef ((double) li, (double) thickness,mw);
     }
     for(i=0; i<S; i++)
     {
         double tint[Z],rho_first[Z],se_first[Z]= {0};
         functions->setRho(rho,rhoIce, told, thickness, acc);
         setHeatVar(functions, K, cp, told, thickness,rho,rhoIce);
-        computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
+        computeMelt(functions, &m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         told[0]=tground;
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
-        setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
+        setInternal(functions,se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
         integrate_CN(tint,told, a, b, a, b, tground, tsurf, thickness, 1,se);
         for(li=0; li <=thickness; li++)
         {
@@ -76,10 +79,10 @@ void spin_up(const model_functions * const functions, double *told, double thick
         // Second pass
         functions->setRho(rho,rhoIce, tint, thickness, acc);
         setHeatVar(functions,K, cp, tint, thickness,rho,rhoIce);
-        computeMelt(&m,&tground,rho_first,L,K[1],cp[0],tint[1],tint[0],thick,delz,QG,&f);
+        computeMelt(functions,&m,&tground,rho_first,L,K[1],cp[0],tint[1],tint[0],thick,delz,QG,&f);
         tint[0]=tground;
         setABW(a2,b2,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
-        setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
+        setInternal(functions,se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
         for(li=0; li <=thickness; li++)
             {
                 if(se[li]>0)
@@ -120,7 +123,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
     for(li=0; li <=thickness; li++)
     {
         told[li]=temperature[li];
-        w_def[li]=wDef ((double) li, (double) thick,mw);
+        w_def[li]=functions->wDef ((double) li, (double) thick,mw);
     }
     double tsurf_old=told[thickness];
 
@@ -132,9 +135,9 @@ void t_solve(const model_functions * const functions, double *temperature, int t
 
         functions->setRho(rho,rhoIce, told, thickness, acc);
         setHeatVar(functions,K, cp, told, thickness,rho,rhoIce);
-        computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
+        computeMelt(functions, &m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
-        setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
+        setInternal(functions,se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
         integrate_CN(tint,told, a, b, a, b, tground, tsurf, thickness, 1,se);
         for(li=0; li <=thickness; li++)
         {
@@ -154,10 +157,10 @@ void t_solve(const model_functions * const functions, double *temperature, int t
             {
                 rho_mean[li]=(rho[li]+rho_first[li])/2;
             }
-            computeMelt(&m,&tground,rho_mean,L,(K[1]+K1)/2,(cp[0]+cp0)/2,(tint[1]+told[1])/2,(tint[0]+told[0])/2,thick,delz,QG,&f);
+            computeMelt(functions,&m,&tground,rho_mean,L,(K[1]+K1)/2,(cp[0]+cp0)/2,(tint[1]+told[1])/2,(tint[0]+told[0])/2,thick,delz,QG,&f);
             tint[0]=tground;
             setABW(a2,b2,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
-            setSe(se,rho,w,cp,K,delt,thickness,tint,deltaH,dhdt,tborder, border,len,flat);
+            setInternal(functions,se,rho,w,cp,K,delt,thickness,tint,deltaH,dhdt,tborder, border,len,flat);
             for(li=0; li <=thickness; li++)
             {
                 if(se[li]>0)
@@ -180,9 +183,9 @@ void t_solve(const model_functions * const functions, double *temperature, int t
     {
         functions->setRho(rho,rhoIce, told, thickness, acc);
         setHeatVar(functions,K, cp, told, thickness,rho,rhoIce);
-        computeMelt(&m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
+        computeMelt(functions, &m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
-        setSe(se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
+        setInternal(functions,se,rho,w,cp,K,delt,thickness,told,deltaH,dhdt,tborder, border,len,flat);
         integrate_expl(told, a,b, tground, tsurf,  tsurf_old, thickness, se);
         melt[time]+=m*31556926;
         freeze[time]=f;

@@ -173,7 +173,7 @@ bool mainLoop(model_parameters* params, time_series* ts, model_functions* functi
       while (height<data.iceThickness[age] && age>0)
       {
         height+=((data.acc[age]*31556926*100-data.melt[age]*100-
-                 (data.iceThickness[age]-data.iceThickness[age-1]))*wDef((double)height,
+                 (data.iceThickness[age]-data.iceThickness[age-1]))*functions->wDef((double)height,
                  data.iceThickness[age],data.mw)+data.melt[age]*100);
         age--;
       }

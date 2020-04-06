@@ -105,7 +105,7 @@ bool initModelParameters(model_parameters *params, char* fileName)
 char *SAVE_TYPE_STR[3] = {"ST_MATRIX", "ST_VECTOR", "ST_UNSET"};
 char *SCHEME_STR[3] = {"SC_CN", "SC_EXPL", "SC_UNSET"};
 char *THERMAL_STR[3] = {"TH_CP", "TH_GO", "TH_UNSET"};
-char *FIRN_STR[4] = {"FI_SC", "FI_CP", "FI_FI", "FI_UNSET"};
+char *FIRN_STR[3] = {"FI_SC", "FI_CP", "FI_UNSET"};
 char *RHO_TYPE_STR[3] = {"RHO_FIRN", "RHO_CONST", "RHO_UNSET"};
 char *VERTICAL_PROFILE_STR[3] = {"VP_FI", "VP_PA", "VP_UNSET"};
 char *INTERNAL_ENERGY_STR[3] = {"IE_ON", "IE_OFF", "IE_UNSET"};
@@ -357,6 +357,52 @@ bool initModelFunctions(model_functions *functions,const model_parameters * cons
   }
 
   functions->setHeatCapacity=&setHeatCapacity;
+
+  if(params->MELTING1==ME_FREE_MELT)
+  {
+    functions->computeMelt=&computeMelt_FREE_MELT;
+  }
+  else if(params->MELTING1==ME_FREEZING_NO_ICE)
+  {
+    functions->computeMelt=&computeMelt_FREEZING_NO_ICE;
+  }
+  else if(params->MELTING1==ME_FREEZING)
+  {
+    functions->computeMelt=&computeMelt_FREEZING;
+  }
+  else
+  {
+    functions->computeMelt=NULL;
+    return false;
+  }
+
+  if(params->VERTICAL_PROFILE1==VP_FI)
+  {
+    functions->wDef=&wDef_FI;
+  }
+  else if(params->VERTICAL_PROFILE1==VP_PA)
+  {
+    functions->wDef=&wDef_PA;
+  }
+  else
+  {
+    functions->computeMelt=NULL;
+    return false;
+  }
+
+  if(params->INTERNAL_ENERGY1==IE_ON)
+  {
+    functions->setSe=&setSe_ON;
+  }
+  else if(params->INTERNAL_ENERGY1==IE_OFF)
+  {
+    functions->setSe=&setSe_OFF;
+  }
+  else
+  {
+    functions->computeMelt=NULL;
+    return false;
+  }
 
   return true;
 }

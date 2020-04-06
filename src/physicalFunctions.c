@@ -50,9 +50,6 @@ void setRho_CONST(double* rho, double *rhoIce,double* temp, int thickness,double
     }
 }
 
-
-
-
 void setHeatVar(const model_functions * const functions, double *K,double *cp,double *temperature,int thickness, double *rho, double *rhoIce)
 {
     functions->setThermalIce(K, temperature, thickness);
@@ -104,7 +101,7 @@ void setHeatCapacity(double *cp,double *temperature,int thickness)
 
 
 
-void computeMelt(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thick,double delz,double QG,double* f)
+void computeMelt(const model_functions * const functions,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thick,double delz,double QG,double* f)
 {
     int li=0;
     double tmelt=0;
@@ -118,69 +115,88 @@ void computeMelt(double* m,double* tground,double* rho,double L,double K0,double
     tmelt=273.16-7.2*pow(10,-8)*(pressure)*9.8;
     double diff=QG+K0*(told1-tmelt)/delz;
 
-    if(diff>0) //If enough energy is available to melt ice
-    {
-    	if (strcmp(MELTING,"FREE_MELT")==0){
-        	*m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
-	        *tground=tmelt;
-	        *f=0;
-    	}
-    	if (strcmp(MELTING,"FREEZING_NO_ICE")==0){
-        	*m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
-	        *tground=tmelt;
-	        *f=0;
-    	}
-    	if (strcmp(MELTING,"FREEZING")==0){
-        	*m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
-        	if(*m >= *f/31556926.){
-        		*m-=*f/31556926;
-        		*f=0;
-        	}
-        	else{
-        		*f-=*m*31556926;
-        		*m=0;
-        	}
-	        *tground=tmelt;
-    	}
-    }
-    else if(diff<=0) //If not enough energy is available, bottom temperature is decreased
-    {
-   		if (strcmp(MELTING,"FREE_MELT")==0){
-   			*m= 0;
-           	*tground=QG*delz/K0+told1;
-           	*f=0;
-   		}
-   		else if (strcmp(MELTING,"FREEZING_NO_ICE")==0){
-   			*m= 0;
-           	*tground=tmelt;
-           	*f=0;
-   		}
-   		if (strcmp(MELTING,"FREEZING")==0){
-   			*m= 0;
-           	*tground=tmelt;
-   			*f= diff/(rho[0]*L)*31556926;
-   		}
-
-    }
+    functions->computeMelt(diff, tmelt, m,tground,rho,L,K0,cp0, told1,told0,delz,QG, f);
 }
 
-double wDef (double z, double thickness,double mw)
+void computeMelt_FREE_MELT(double diff, double tmelt,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f)
 {
-    if (strcmp(VERTICAL,"FI")==0){
-    	//	if (mw==0.5){
-    	//		return ((double)z/ thickness)*sqrt((double)z/ thickness);
-    	//		}
-    	//	else{
-            	return pow(((double)z/ thickness),(1+mw));
-    	//	}
+  if(diff>0) //If enough energy is available to melt ice
+  {
+    *m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
+    *tground=tmelt;
+    *f=0;
+  }
+  else  //If not enough energy is available, bottom temperature is decreased
+  {
+    *m= 0;
+    *tground=QG*delz/K0+told1;
+    *f=0;
+  }
+}
+
+void computeMelt_FREEZING_NO_ICE(double diff, double tmelt,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f)
+{
+  UNUSED(K0);
+  UNUSED(delz);
+  UNUSED(QG);
+
+  if(diff>0) //If enough energy is available to melt ice
+  {
+    *m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
+    *tground=tmelt;
+    *f=0;
+    *m= 0;
+  }
+  else  //If not enough energy is available, temperature stays at t_melt but no ice is added
+  {
+   	*tground=tmelt;
+   	*f=0;
+  }
+}
+
+void computeMelt_FREEZING(double diff, double tmelt,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f)
+{
+  UNUSED(K0);
+  UNUSED(delz);
+  UNUSED(QG);
+
+  if(diff>0) //If enough energy is available to melt ice
+  {
+    *m= 1/(rho[0]*(L-cp0*(told0-tmelt))+cp0*(tmelt-told1)/2)* (-rho[0]*cp0*(tmelt-told0)/(2.*31556926.*100.) +diff);
+    *tground=tmelt;
+    if(*m >= *f/31556926.){
+      *m-=*f/31556926;
+      *f=0;
     }
-    else if (strcmp(VERTICAL,"PA")==0){
-        double p=mw;
-        return ((z/ thickness)*0+(1.-0)*(1-(p+2)/(p+1)*(1-(z/ thickness))+1/(p+1)*pow(1-(z/ thickness),p+2)));
+    else{
+      *f-=*m*31556926;
+      *m=0;
     }
+  }
+  else  //If not enough energy is available, temperature stays at t_melt and ice is added
+  {
+    *m= 0;
+    *tground=tmelt;
+    *f= diff/(rho[0]*L)*31556926;
+  }
+}
+
+double wDef_FI(double z, double thickness,double mw)
+{
+  if (mw==0.5){
+    return ((double)z/ thickness)*sqrt((double)z/ thickness);
+  }
+  else{
+      return pow(((double)z/ thickness),(1+mw));
+  }
 
 }
 
+double wDef_PA(double z, double thickness,double mw)
+{
+  double p=mw;
+  return ((z/ thickness)*0+(1.-0)*(1-(p+2)/(p+1)*(1-(z/ thickness))+1/(p+1)*pow(1-(z/ thickness),p+2)));
+}
 //Compute the matrix element a and b used in explicit and CN scheme and the velocity profile
 void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,double delt,double delz,double acc,double m,double dhdt,double* w_def,int thickness,double* rhoIce)
 {
@@ -194,27 +210,12 @@ void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,doubl
     }
 }
 
-void setSe(double *se,double *rho,double *w, double *cp, double *K, double delt,int thickness, double* told, double dH,double dhdt,double * tborder, int border,double len, double flat)
+void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K, double delt,int thickness, double* told, double dH,double dhdt,double * tborder, int border,double len, double flat)
 {
-    double P=0;
     int li=0;
     int deltaH=(int)dH;
     //Internal energy production
-    if (strcmp(INTERNAL_ENERGY,"ON")==0){
-	    for(li=thickness-1; li>=1; li--)
-	    {
-	        P+=rho[li-1]*9.81;
-	        se[li]=0;
-	        double cr=cbrt(getDwdz(w,li,thickness)+getDudz((double)li/thickness));
-	        se[li]=2*cr*cr*getA(told[li])*delt/(rho[li]*cp[li])+(w[li]*P/rho[li]*(rho[li+1]-rho[li-1])/2)*delt/(rho[li]*cp[li]);
-	    }
-    }
-    else if (strcmp(INTERNAL_ENERGY,"OFF")==0){
-    	for(li=thickness-1; li>=1; li--)
-	    {
-	        se[li]=0;
-	    }
-    }
+    functions->setSe(se,rho,w, cp, thickness, told, delt);
     //Valley effect
     if(deltaH>0 && border==0)
     {
@@ -228,6 +229,32 @@ void setSe(double *se,double *rho,double *w, double *cp, double *K, double delt,
             se[li]+=K[li]*2*4*(told[0]+li*6.50E-4-told[li])/((flat+l*(len-flat))*(flat+l*(len-flat))*rho[li]*cp[li])*delt;
         }
     }
+}
+
+void setSe_ON(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt)
+{
+  double P=0;
+  int li=0;
+  for(li=thickness-1; li>=1; li--)
+  {
+      P+=rho[li-1]*9.81;
+      se[li]=0;
+      double cr=cbrt(getDwdz(w,li,thickness)+getDudz((double)li/thickness));
+      se[li]=2*cr*cr*getA(told[li])*delt/(rho[li]*cp[li])+(w[li]*P/rho[li]*(rho[li+1]-rho[li-1])/2)*delt/(rho[li]*cp[li]);
+  }
+}
+void setSe_OFF(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt)
+{
+  UNUSED(rho);
+  UNUSED(w);
+  UNUSED(cp);
+  UNUSED(told);
+  UNUSED(delt);
+  int li=0;
+  for(li=thickness-1; li>=1; li--)
+  {
+      se[li]=0;
+  }
 }
 
 //Linear piecewise approximation of the horizontal velocity vertical derivative profile squared

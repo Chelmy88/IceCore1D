@@ -132,6 +132,11 @@ void runModel(model_data *data,const model_parameters * const params,
     }
     time_for_loop+=(real)(omp_get_wtime() - begin2); //Store the loop time
   }
+
+  free(spin_up_temp);
+  free(spin_up_temp2);
+  free(temperatureBorder);
+  free(dens);
 //melt[0]=melt[1];
 //Print the time for the run and the individual loop mean time
   printf("\nIntegration ok in: %f secondes  ",time_for_loop);

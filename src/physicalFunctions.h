@@ -55,22 +55,24 @@ void setThermalFirn_SC(double *K,double *rho, double* rhoIce,int thickness);
 
 void setHeatCapacity(double *cp,double *temperature,int thickness);
 
-
-
-
-
-
-void computeMelt(double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thickness,double delz,double QG, double* f);
+void computeMelt(const model_functions * const functions,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double thickness,double delz,double QG, double* f);
 //Compute the melt rate, called by spin_up() and t_solve()
 
-double wDef(double z, double thickness,double mw);
+void computeMelt_FREE_MELT(double diff,double tmelt, double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f);
+void computeMelt_FREEZING_NO_ICE(double diff,double tmelt, double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f);
+void computeMelt_FREEZING(double diff, double tmelt,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f);
+
 //Compute the flux shape function values, called by spin_up() and t_solve()
+double wDef_FI(double z, double thickness,double mw);
+double wDef_PA(double z, double thickness,double mw);
 
 void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,double delt,double delz,double acc,double m,double dhdt,double* w_def,int thickness, double* rhoIce);
 //Compute the vertical velocity and the a,b (explicit scheme) or alpha,beta(CN scheme) values, called by spin_up() and t_solve()
 
-void setSe(double *se,double *rho,double *w, double *cp, double *K,double delt, int thickness, double* told, double deltaH,double dhdt,double * tborder,int border,double len, double flat);
+void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K,double delt, int thickness, double* told, double deltaH,double dhdt,double * tborder,int border,double len, double flat);
 //Compute the internal energy production and the lateral heat flux (valley effect)
+void setSe_ON(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt);
+void setSe_OFF(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt);
 
 double getDwdz(double*w,int z,int thickness);
 //Compute the vertical derivative of the vertical velocity profile, called by setSe()
