@@ -29,8 +29,9 @@
 #include "structures.h"
 #include "runModel.h"
 
-bool mainLoop(model_parameters* params,time_series* ts, model_functions* functions, double**  summary);
-
+bool mainLoop(model_parameters* params,time_series* ts, model_functions* functions);
+double** computeAge(const model_data * const data, const model_functions * const functions,
+                    size_t ageVerRes,size_t ageHorRes,size_t ageCor);
 int main()
 {
 
@@ -66,16 +67,8 @@ int main()
   }
 
 
-  //Define a table to store a summary of the various runs performed
-  double** summary;
-  summary = malloc( 15000  * sizeof(*summary));
-  for (size_t i = 0; i < 15000; i++)
-  {
-      summary[i] = malloc(11*sizeof(summary));
-  }
-
   size_t exit_status;
-  if(mainLoop(&params, &ts, &functions, summary))
+  if(mainLoop(&params, &ts, &functions))
   {
     printf("Run OK -- in %f seconds\n",(double)(omp_get_wtime() - begin));
     exit_status=0;
@@ -90,7 +83,45 @@ int main()
   return exit_status;
 }
 
-bool mainLoop(model_parameters* params, time_series* ts, model_functions* functions, double**  summary){
+
+double** computeAge(const model_data * const data, const model_functions * const functions,
+                    size_t ageVerRes,size_t ageHorRes,size_t ageCor)
+{
+  // // POST PROCESSING//
+  // //Compute the difference with the age profile for 213 points and compute the mean of the difference
+  printf("\nComputing age ... ");
+  fflush(stdout);
+  double begin3=omp_get_wtime();
+  double** ageRel;
+
+
+   ageRel = malloc( (size_t) ageVerRes * sizeof(*ageRel));
+   for (size_t i = 0; i < ageVerRes; i++)
+   {
+     ageRel[i] = malloc((ageHorRes+1)*sizeof(ageRel));
+  }
+  for(size_t a=ageHorRes; a>0; a--){
+    for(size_t h=1; h<ageVerRes; h++)
+    {
+      float height=h*5;
+      int age=a*10+ageCor;
+      while (height<data->iceThickness[age] && age>0)
+      {
+        height+=((data->acc[age]*31556926*100-data->melt[age]*100-
+                 (data->iceThickness[age]-data->iceThickness[age-1]))*functions->wDef((double)height,
+                 data->iceThickness[age],data->mw)+data->melt[age]*100);
+        age--;
+      }
+      ageRel[h-1][0]=h*5;
+      ageRel[h-1][a]=(a*10+ageCor-age)*100;
+    }
+  }
+  printf("Age ok in in: %f secondes\n",(double)(omp_get_wtime() - begin3));
+
+  return(ageRel);
+}
+
+bool mainLoop(model_parameters* params, time_series* ts, model_functions* functions){
 
   bool succes=true;
   int tot=params->values.tot; //Number of run, the size of the summary table should be bigger
@@ -132,57 +163,29 @@ bool mainLoop(model_parameters* params, time_series* ts, model_functions* functi
 
   runModel(&data,params,ts,functions);
 
-  // // POST PROCESSING//
-  // //Compute the difference with the age profile for 213 points and compute the mean of the difference
- 	printf("\nComputing age ... ");
- 	fflush(stdout);
- 	double begin3=omp_get_wtime();
- 	double** ageRel;
- 	size_t ageVerRes = 0;
+  size_t ageVerRes = 0;
   size_t ageHorRes = 0;
   size_t ageCor= 0;
-  if(strcmp(SAVE_TYPE,"MATRIX")==0){
-    if (T==10001){
-      ageVerRes = (size_t) (Z/5);
-      ageHorRes = (size_t) (T/10);
+  if(params->SAVE_TYPE1==ST_MATRIX){
+    if (params->T1==10001){
+      ageVerRes = (size_t) (params->Z1/5);
+      ageHorRes = (size_t) (params->T1/10);
       ageCor=0;
     }
-    else if (T==40001){
-      ageVerRes = (size_t) (Z/5);
-      ageHorRes = (size_t) (T/20);
+    else if (params->T1==40001){
+      ageVerRes = (size_t) (params->Z1/5);
+      ageHorRes = (size_t) (params->T1/20);
       ageCor=20000;
     }
   }
-  else if (strcmp(SAVE_TYPE,"VECTOR")==0){
-    ageVerRes = (size_t) (Z/5);
+  else if (params->SAVE_TYPE1==ST_VECTOR){
+    ageVerRes = (size_t) (params->Z1/5);
     ageHorRes = 1;
-    ageCor=T-11;
+    ageCor=params->T1-11;
   }
 
-   ageRel = malloc( (size_t) ageVerRes * sizeof(*ageRel));
-   for (size_t i = 0; i < ageVerRes; i++)
-   {
-     ageRel[i] = malloc((ageHorRes+1)*sizeof(ageRel));
-  }
-  double ageDiff=0;   //   #pragma omp parallel for
-  for(size_t a=ageHorRes; a>0; a--){
-    for(size_t h=1; h<ageVerRes; h++)
-    {
-      float height=h*5;
-      int age=a*10+ageCor;
-      while (height<data.iceThickness[age] && age>0)
-      {
-        height+=((data.acc[age]*31556926*100-data.melt[age]*100-
-                 (data.iceThickness[age]-data.iceThickness[age-1]))*functions->wDef((double)height,
-                 data.iceThickness[age],data.mw)+data.melt[age]*100);
-        age--;
-      }
-      ageRel[h-1][0]=h*5;
-      ageRel[h-1][a]=(a*10+ageCor-age)*100;
-    }
-  }
+  double** age = computeAge(&data,functions,ageVerRes,ageHorRes,ageCor);
 
-  printf("Age ok in in: %f secondes\n",(double)(omp_get_wtime() - begin3));
   // //Compute the difference with the borehole  temperature profile below 600 m deep (because upper part of the measurements are affected by seasonality)
   // double tempDiff=0;
   // double tnew2[Z]= {0};
@@ -197,6 +200,8 @@ bool mainLoop(model_parameters* params, time_series* ts, model_functions* functi
   // tempDiff/=(iceThickness[T-1]);
   //
   // // Generate a file name with the free parameters
+
+
    char fileName[180]="";
    char path[180]="";
    sprintf(path, "%s/m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%.0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
@@ -211,78 +216,38 @@ bool mainLoop(model_parameters* params, time_series* ts, model_functions* functi
   if (stat(path, &st) == -1) {
     mkdir(path, 0700);
   }
+
   // Save the temperature profile, the melt rate and the age scale
-  sprintf(fileName, "%s.dat","temp_profile");
-  saveTable(data.tnew,fileName,path,Z);
   sprintf(fileName, "%s.dat","melt_rate");
   saveTable(data.melt,fileName,path,T);
   sprintf(fileName, "%s.dat","frozen_ice");
   saveTable(data.freeze,fileName,path,T);
   if(strcmp(SAVE_TYPE,"MATRIX")==0){
-    // sprintf(fileName, "%s.dat","age_matrix");
-    // save2DTable(ageRel,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
-    // sprintf(fileName, "%s.dat","temp_matrix");
-    // if (T==10001){
-    // 	save2DTable(temperature,fileName,path,Z,T,1,10,0);
-    // }
-    // else if(T==40001){
-    //  	save2DTable(temperature,fileName,path,Z,T,1,10,20000);
-    // }
+    sprintf(fileName, "%s.dat","age_matrix");
+    save2DTable(age,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
+    sprintf(fileName, "%s.dat","temp_matrix");
+    if (T==10001){
+    	save2DTable(data.temperature,fileName,path,Z,T,1,10,0);
+    }
+    else if(T==40001){
+     	save2DTable(data.temperature,fileName,path,Z,T,1,10,20000);
+    }
   }
   else if(strcmp(SAVE_TYPE,"VECTOR")==0){
     sprintf(fileName, "%s.dat","age_profile");
-    save2DTable(ageRel,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
-    sprintf(fileName, "%s.dat","temperature_today");
+    save2DTable(age,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
+    sprintf(fileName, "%s.dat","temp_profile");
     saveTable(data.tnew,fileName,path,Z);
   }
-  // // sprintf(fileName, "%s.dat","density_matrix_top");
-  // // if (T==10001){
-  // //     save2DTable_top(density,fileName,path,iceThickness,200,T);
-  // // }
-  // // else if(T==40001){
-  // //   save2DTable_top(density,fileName,path,iceThickness,200,T);
-  // // }
-  // // sprintf(fileName, "%s.dat","temperature_matrix_top");
-  // // if (T==10001){
-  // //   save2DTable_top(temperature,fileName,path,iceThickness,200,T);
-  // // }
-  // // else if(T==40001){
-  // //   save2DTable_top(temperature,fileName,path,iceThickness,200,T);
-  // // }
-  // sprintf(fileName, "%s.dat","surface_temperature");
-  // saveTable(surfaceTemp,fileName,path,T);
-  // sprintf(fileName, "%s.dat","accumulation_rate");
-  // saveTable(acc2,fileName,path,T);
-  // sprintf(fileName, "%s.dat","ice_thickness");
-  // saveTable(iceThickness,fileName,path,T);
-  // //Create a summary table for all the runs
-  // summary[count][0]=mw;
-  // summary[count][1]=QG;
-  // summary[count][2]=pCor;
-  // summary[count][3]=tCor;
-  // summary[count][4]=tCor2;
-  // summary[count][5]=deltaH;
-  // summary[count][6]=len;
-  // summary[count][7]=flat;
-  // summary[count][8]=tempDiff;
-  // summary[count][9]=ageDiff;
-  // summary[count][10]=tnew2[0]-273.15;
+
   #pragma omp atomic
   count++;
   #pragma omp flush (count)
   printf("END LOOP : %d/%d\n\n",count,tot);
-      //Uncomment the line below to save the whole temperature matrix
-     // saveTemp(temperature);
   fflush(stdout);
   deleteModelData(&data,params);
 
-
 }}}}}}}}
-  for (size_t i = 0; i < 15000; i++)
-  {
-      double* currentIntPtr = summary[i];
-      free(currentIntPtr);
-  }
   char path[120];
   sprintf(path,"%s/init.txt",params->OUTPUT_PATH);
   copyFile("init.txt",path);
