@@ -210,7 +210,7 @@ void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,doubl
     }
 }
 
-void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K, double delt,int thickness, double* told, double dH,double dhdt,double * tborder, int border,double len, double flat)
+void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K, double delt,int thickness, double* told, double dH,double * tborder, int border,double len, double flat)
 {
     int li=0;
     int deltaH=(int)dH;

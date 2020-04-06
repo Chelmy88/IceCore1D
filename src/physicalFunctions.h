@@ -69,7 +69,7 @@ double wDef_PA(double z, double thickness,double mw);
 void setABW(double* a,double* b,double* w,double* cp,double* K,double* rho,double delt,double delz,double acc,double m,double dhdt,double* w_def,int thickness, double* rhoIce);
 //Compute the vertical velocity and the a,b (explicit scheme) or alpha,beta(CN scheme) values, called by spin_up() and t_solve()
 
-void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K,double delt, int thickness, double* told, double deltaH,double dhdt,double * tborder,int border,double len, double flat);
+void setInternal(const model_functions * const functions,double *se,double *rho,double *w, double *cp, double *K,double delt, int thickness, double* told, double deltaH,double * tborder,int border,double len, double flat);
 //Compute the internal energy production and the lateral heat flux (valley effect)
 void setSe_ON(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt);
 void setSe_OFF(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt);

@@ -59,7 +59,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
 //This function calls various function to compute all the needed parameters
 //Finally, this function calls the defined algorithm to compute the temperature
 
-void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* alpha1,double* beta1,double tground,double tsurf,int thickness,int step,double* se);//, double* se);
+void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* alpha1,double* beta1,double tground,double tsurf,int thickness,double* se);//, double* se);
 //Compute the temperature using the CN scheme, called by spin_up() and t_solve()
 
 void integrate_expl(double* told, double* a, double* b, double tground, double tsurf, double tsurf_old, int thickness, double* se);
