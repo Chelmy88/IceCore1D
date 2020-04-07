@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 //*************File management functions*************
 
 bool readTable(double* table, const char* const fileName)
@@ -200,10 +201,9 @@ bool readInitFile(model_parameters* const params, const char* const fileName)
     printf("[E] Cannot open file: %s\n",fileName);
     return false;
   }
-  char *line = NULL;
-  size_t len = 0;
+  char line[BUFSIZ];
   bool state=true;
-  while(getline(&line, &len, fp) != -1)
+  while(fgets(line,BUFSIZ, fp) != NULL)
   {
     removeComments(line);
     if(line[0] == '\0')
