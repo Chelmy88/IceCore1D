@@ -1,81 +1,105 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
+#include "define.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include "define.h"
 
 typedef struct _model_values {
-  real* mw;
+  real *mw;
   size_t mw_n;
-  real* QG;
+  real *QG;
   size_t QG_n;
-  real* TCor;
+  real *TCor;
   size_t TCor_n;
-  real* TCor2;
+  real *TCor2;
   size_t TCor2_n;
-  real* PCor;
+  real *PCor;
   size_t PCor_n;
-  real* deltaH;
+  real *deltaH;
   size_t deltaH_n;
-  real* len;
+  real *len;
   size_t len_n;
-  real* flat;
+  real *flat;
   size_t flat_n;
   size_t tot;
-}model_values;
+} model_values;
 
-enum SAVE_TYPE_ENUM{ST_MATRIX, ST_VECTOR, ST_UNSET};
-enum SCHEME_ENUM {SC_CN, SC_EXPL, SC_UNSET};
-enum THERMAL_ENUM {TH_CP, TH_GO, TH_UNSET};
-enum FIRN_ENUM {FI_SC, FI_CP, FI_UNSET};
-enum RHO_TYPE_ENUM {RHO_FIRN, RHO_CONST, RHO_UNSET};
-enum VERTICAL_PROFILE_ENUME {VP_FI, VP_PA, VP_UNSET};
-enum INTERNAL_ENERGY_ENUM {IE_ON, IE_OFF, IE_UNSET};
-enum MELTING_ENUM {ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET};
+enum SAVE_TYPE_ENUM { ST_MATRIX, ST_VECTOR, ST_UNSET };
+enum SCHEME_ENUM { SC_CN, SC_EXPL, SC_UNSET };
+enum THERMAL_ENUM { TH_CP, TH_GO, TH_UNSET };
+enum FIRN_ENUM { FI_SC, FI_CP, FI_UNSET };
+enum RHO_TYPE_ENUM { RHO_FIRN, RHO_CONST, RHO_UNSET };
+enum VERTICAL_PROFILE_ENUME { VP_FI, VP_PA, VP_UNSET };
+enum INTERNAL_ENERGY_ENUM { IE_ON, IE_OFF, IE_UNSET };
+enum MELTING_ENUM { ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET };
 
-enum DATA_ENUM{SAVE_TYPE,SCHEME,THERMAL,FIRN,RHO_TYPE,VERTICAL_PROFILE,INTERNAL_ENERGY,MELTING,DATA_ENUM_SIZE};
+enum DATA_ENUM {
+  SAVE_TYPE,
+  SCHEME,
+  THERMAL,
+  FIRN,
+  RHO_TYPE,
+  VERTICAL_PROFILE,
+  INTERNAL_ENERGY,
+  MELTING,
+  DATA_ENUM_SIZE
+};
 
 // Structure to store time series informations
 typedef struct _model_parameters {
-  int Z1; //3400//height of the table
-  int T1; //10001//10001 //width of the table
-  int S1; //1500 //Length of the spin up in hYr
-  enum SAVE_TYPE_ENUM SAVE_TYPE1; //"VECTOR"//MATRIX or VECTOR to save age and temperature
+  int Z1; // 3400//height of the table
+  int T1; // 10001//10001 //width of the table
+  int S1; // 1500 //Length of the spin up in hYr
+  enum SAVE_TYPE_ENUM
+      SAVE_TYPE1; //"VECTOR"//MATRIX or VECTOR to save age and temperature
   enum SCHEME_ENUM SCHEME1; //"CN"//Scheme used, values can be CN or expl
-  int rhoSnow1; //350 //Value of the snow density used in the computation of the density profile
-  enum THERMAL_ENUM THERMAL1;// "CP"//Model used for themal parameters, can be CP or GO
-  enum FIRN_ENUM FIRN1;// "SC" // Correction for the firn thermal conductivity, can be CP,SC or FI
-  enum RHO_TYPE_ENUM RHO1;// "FIRN" // Set the density profile to realistic (FIRN) or constant (CONST)
-  enum VERTICAL_PROFILE_ENUME VERTICAL_PROFILE1;// "FI" // Set the flux shape function to FI or PA
-  enum INTERNAL_ENERGY_ENUM INTERNAL_ENERGY1;// "OFF" //Decide wether internal energy should be included or not
-  enum MELTING_ENUM MELTING1;// "FREE_MELT" //Basal malting-refeezing handeling : FREE_MELT->no basal refreezing, temperature decreases if there is no melt, FREEZING_NO_ICE -> some refreezing is possible, but the ice dissapear (i.e. bottom temp is always tmelt, no other difference), FREEZING -> some water is allowed to refreez, when melting comes back, first this ice is melted before real melting occures (refreezing and melting of frozen ice have no inflence on vertical velocity).
-  char* TEMPERATURE_FILE; //"output"//Directory to store data file into
-  char* ACCUMULATION_FILE; //"output"//Directory to store data file into
-  char* ICE_THICKNESS_FILE; //"output"//Directory to store data file into
-  char* AGE_FILE; //"output"//Directory to store data file into
-  char* BOREHOLE_TEMPERATURE_FILE; //"output"//Directory to store data file into
-  char* OUTPUT_PATH; //"output"//Directory to store data file into
-  char*** strings;
+  int rhoSnow1; // 350 //Value of the snow density used in the computation of
+                // the density profile
+  enum THERMAL_ENUM
+      THERMAL1; // "CP"//Model used for themal parameters, can be CP or GO
+  enum FIRN_ENUM FIRN1; // "SC" // Correction for the firn thermal conductivity,
+                        // can be CP,SC or FI
+  enum RHO_TYPE_ENUM RHO1; // "FIRN" // Set the density profile to realistic
+                           // (FIRN) or constant (CONST)
+  enum VERTICAL_PROFILE_ENUME
+      VERTICAL_PROFILE1; // "FI" // Set the flux shape function to FI or PA
+  enum INTERNAL_ENERGY_ENUM
+      INTERNAL_ENERGY1; // "OFF" //Decide wether internal energy should be
+                        // included or not
+  enum MELTING_ENUM
+      MELTING1; // "FREE_MELT" //Basal malting-refeezing handeling :
+                // FREE_MELT->no basal refreezing, temperature decreases if
+                // there is no melt, FREEZING_NO_ICE -> some refreezing is
+                // possible, but the ice dissapear (i.e. bottom temp is always
+                // tmelt, no other difference), FREEZING -> some water is
+                // allowed to refreez, when melting comes back, first this ice
+                // is melted before real melting occures (refreezing and melting
+                // of frozen ice have no inflence on vertical velocity).
+  char *TEMPERATURE_FILE;          //"output"//Directory to store data file into
+  char *ACCUMULATION_FILE;         //"output"//Directory to store data file into
+  char *ICE_THICKNESS_FILE;        //"output"//Directory to store data file into
+  char *AGE_FILE;                  //"output"//Directory to store data file into
+  char *BOREHOLE_TEMPERATURE_FILE; //"output"//Directory to store data file into
+  char *OUTPUT_PATH;               //"output"//Directory to store data file into
+  char ***strings;
   model_values values;
-}model_parameters;
+} model_parameters;
 
-bool initModelParameters(model_parameters *params, char* fileName);
+bool initModelParameters(model_parameters *params, char *fileName);
 
 void printModelParameters(model_parameters *params);
 
 void deleteModelParameters(model_parameters *params);
 
-
 // Structure to store time series informations
 typedef struct _time_series {
-  real* surfaceTempLoad;
-  real* iceThicknessLoad;
-  real* accLoad;
-  real* age;
-  real* borehole_temp;
+  real *surfaceTempLoad;
+  real *iceThicknessLoad;
+  real *accLoad;
+  real *age;
+  real *borehole_temp;
 } time_series;
-
 
 bool initTimeSeries(time_series *ts, model_parameters *params);
 
@@ -83,15 +107,15 @@ void deleteTimeSeries(time_series *ts);
 
 // Structure to store model data while running
 typedef struct _model_data {
-  real** temperature;
-  real** density;
-  real* tnew;
-  real* surfaceTemp;
-  real* iceThickness;
-  real* acc;
-  real* acc2;
-  real* melt;
-  real* freeze;
+  real **temperature;
+  real **density;
+  real *tnew;
+  real *surfaceTemp;
+  real *iceThickness;
+  real *acc;
+  real *acc2;
+  real *melt;
+  real *freeze;
   real mw;
   real QG;
   real tCor;
@@ -102,32 +126,40 @@ typedef struct _model_data {
   real flat;
 } model_data;
 
-bool initModelData(model_data *data,const model_parameters * const params,size_t mwL,
-                   size_t QGL,size_t TcorL, size_t TcorL2,size_t PcorL,size_t deltaHL,size_t lenL,size_t flatL);
+bool initModelData(model_data *data, const model_parameters *const params,
+                   size_t mwL, size_t QGL, size_t TcorL, size_t TcorL2,
+                   size_t PcorL, size_t deltaHL, size_t lenL, size_t flatL);
 
-void deleteModelData(model_data *data,const model_parameters * const params);
-
+void deleteModelData(model_data *data, const model_parameters *const params);
 
 typedef struct _model_functions {
-  void (*setRho)(double* rho, double *rhoIce, double* temp, int thickness,double acc);
-  //Compute the density profile
+  void (*setRho)(double *rho, double *rhoIce, double *temp, int thickness,
+                 double acc);
+  // Compute the density profile
 
-  //Compute the values of the K and c thermal variables, called by spin_up() and t_solve()
-  void (*setThermalIce)(double *K,double *tempersture,int thickness);
-  void (*setThermalFirn)(double *K,double *rho, double* rhoIce,int thickness);
-  void (*setHeatCapacity)(double *cp,double *temperature,int thickness);
+  // Compute the values of the K and c thermal variables, called by spin_up()
+  // and t_solve()
+  void (*setThermalIce)(double *K, double *tempersture, int thickness);
+  void (*setThermalFirn)(double *K, double *rho, double *rhoIce, int thickness);
+  void (*setHeatCapacity)(double *cp, double *temperature, int thickness);
 
-  void (*computeMelt)(double diff,double tmelt,double* m,double* tground,double* rho,double L,double K0,double cp0, double told1,double told0,double delz,double QG, double* f);
-  //Compute the melt rate, called by spin_up() and t_solve()
+  void (*computeMelt)(double diff, double tmelt, double *m, double *tground,
+                      double *rho, double L, double K0, double cp0,
+                      double told1, double told0, double delz, double QG,
+                      double *f);
+  // Compute the melt rate, called by spin_up() and t_solve()
 
-  double (*wDef)(double z, double thickness,double mw);
-  //Compute the flux shape function values, called by spin_up() and t_solve()
+  double (*wDef)(double z, double thickness, double mw);
+  // Compute the flux shape function values, called by spin_up() and t_solve()
 
-  void (*setSe)(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt);
-  //Compute the internal energy production and the lateral heat flux (valley effect)
+  void (*setSe)(double *se, double *rho, double *w, double *cp, int thickness,
+                double *told, double delt);
+  // Compute the internal energy production and the lateral heat flux (valley
+  // effect)
 
 } model_functions;
 
-bool initModelFunctions(model_functions *functions,const model_parameters * const params);
+bool initModelFunctions(model_functions *functions,
+                        const model_parameters *const params);
 
-#endif  /* !STRUCTURES_H */
+#endif /* !STRUCTURES_H */

@@ -11,56 +11,57 @@
 
 // License: distribted under GNU GPL V3 license
 
-// This code is developed to run on Linux machine, but should run on Windows or Mac OS
-//The only parameters defined in main.c are the free parameters of the model, the correction to the boundary condition time series,
-//and the initial temperature profile for spin up
-//For any other modification see the main.h file
+// This code is developed to run on Linux machine, but should run on Windows or
+// Mac OS
+// The only parameters defined in main.c are the free parameters of the model,
+// the correction to the boundary condition time series, and the initial
+// temperature profile for spin up For any other modification see the main.h file
 
-//Include the header file main.h, containing all the key functions and parameters.
+// Include the header file main.h, containing all the key functions and
+// parameters.
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <math.h>
-#include <time.h>
-#include "io.h"
 #include "define.h"
+#include "io.h"
+#include "runModel.h"
 #include "solver.h"
 #include "structures.h"
-#include "runModel.h"
+#include <math.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-bool mainLoop(model_parameters* params,time_series* ts, model_functions* functions);
-double** computeAge(const model_data * const data, const model_functions * const functions,
-                    size_t ageVerRes,size_t ageHorRes,size_t ageCor);
-void saveData(const model_data * const data, const model_parameters * const params,
-                    double ** age, size_t ageVerRes,size_t ageHorRes);
-int main()
-{
-   //Set internal timer
+bool mainLoop(model_parameters *params, time_series *ts,
+              model_functions *functions);
+double **computeAge(const model_data *const data,
+                    const model_functions *const functions, size_t ageVerRes,
+                    size_t ageHorRes, size_t ageCor);
+void saveData(const model_data *const data,
+              const model_parameters *const params, double **age,
+              size_t ageVerRes, size_t ageHorRes);
+int main() {
+  // Set internal timer
   double begin = omp_get_wtime();
 
-	//Read the model parameters
+  // Read the model parameters
   model_parameters params;
-  if(!initModelParameters(&params, "init.txt"))
-  {
+  if (!initModelParameters(&params, "init.txt")) {
     deleteModelParameters(&params);
     printf("[E] Error reading the ini file. Exiting now\n");
     exit(EXIT_FAILURE);
   }
 
-  //Tables to load data
+  // Tables to load data
   time_series ts;
-  if(!initTimeSeries(&ts,&params))
-  {
+  if (!initTimeSeries(&ts, &params)) {
     deleteTimeSeries(&ts);
     deleteModelParameters(&params);
     printf("[E] Error reading the time series files. Exiting now\n");
     exit(EXIT_FAILURE);
   }
-  //Tables to load data
+  // Tables to load data
   model_functions functions;
-  if(!initModelFunctions(&functions,&params))
-  {
+  if (!initModelFunctions(&functions, &params)) {
     deleteTimeSeries(&ts);
     deleteModelParameters(&params);
     printf("[E] Error Initializing model functions. Exiting now\n");
@@ -68,13 +69,11 @@ int main()
   }
 
   size_t exit_status;
-  if(mainLoop(&params, &ts, &functions))
-  {
-    printf("Run OK -- in %f seconds\n",(double)(omp_get_wtime() - begin));
-    exit_status=0;
-  }
-  else{
-    exit_status=EXIT_FAILURE;
+  if (mainLoop(&params, &ts, &functions)) {
+    printf("Run OK -- in %f seconds\n", (double)(omp_get_wtime() - begin));
+    exit_status = 0;
+  } else {
+    exit_status = EXIT_FAILURE;
   }
 
   deleteModelParameters(&params);
@@ -83,126 +82,127 @@ int main()
   return exit_status;
 }
 
-bool mainLoop(model_parameters* params, time_series* ts, model_functions* functions){
+bool mainLoop(model_parameters *params, time_series *ts,
+              model_functions *functions) {
 
-  bool succes=true;
-  int tot=params->values.tot; //Number of run, the size of the summary table should be bigger
+  bool succes = true;
+  int tot =
+      params->values
+          .tot; // Number of run, the size of the summary table should be bigger
   // Loops for the values of the free parameter
-  int count=0;
-  //Initialize the core splitting, should be placed in front of a loop having if possible a number of elements corresponding to a multiple of the core numbers
-  #pragma omp parallel for collapse(8) shared(succes)
-  for (size_t mwL=0; mwL<params->values.mw_n; mwL++)
-  {
-  for (size_t QGL=0; QGL<params->values.QG_n; QGL++)
-  {
-  for (size_t TcorL=0; TcorL<params->values.TCor_n; TcorL++)
-  {
-  for (size_t TcorL2=0; TcorL2<params->values.TCor2_n; TcorL2++)
-  {
-  for (size_t PcorL=0; PcorL<params->values.PCor_n; PcorL++)
-  {
-  for (size_t deltaHL=0; deltaHL<params->values.deltaH_n; deltaHL++)
-  {
-  for (size_t lenL=0; lenL<params->values.len_n; lenL++)
-  {
-  for (size_t flatL=0; flatL<params->values.flat_n; flatL++)
-  {
-  if(!succes)
-  {
-    continue;
-  }
-  model_data data;
+  int count = 0;
+// Initialize the core splitting, should be placed in front of a loop having if
+// possible a number of elements corresponding to a multiple of the core numbers
+#pragma omp parallel for collapse(8) shared(succes)
+  for (size_t mwL = 0; mwL < params->values.mw_n; mwL++) {
+    for (size_t QGL = 0; QGL < params->values.QG_n; QGL++) {
+      for (size_t TcorL = 0; TcorL < params->values.TCor_n; TcorL++) {
+        for (size_t TcorL2 = 0; TcorL2 < params->values.TCor2_n; TcorL2++) {
+          for (size_t PcorL = 0; PcorL < params->values.PCor_n; PcorL++) {
+            for (size_t deltaHL = 0; deltaHL < params->values.deltaH_n;
+                 deltaHL++) {
+              for (size_t lenL = 0; lenL < params->values.len_n; lenL++) {
+                for (size_t flatL = 0; flatL < params->values.flat_n; flatL++) {
+                  if (!succes) {
+                    continue;
+                  }
+                  model_data data;
 
-  if(!initModelData(&data,params,mwL,QGL,TcorL,TcorL2,PcorL,deltaHL,lenL,flatL))
-  {
-    deleteModelData(&data,params);
-    printf("[E] Error Initializing mode data. Exiting when all threads are done\n");
-    succes = false;
-    continue;
-  }
+                  if (!initModelData(&data, params, mwL, QGL, TcorL, TcorL2,
+                                     PcorL, deltaHL, lenL, flatL)) {
+                    deleteModelData(&data, params);
+                    printf("[E] Error Initializing mode data. Exiting when all "
+                           "threads are done\n");
+                    succes = false;
+                    continue;
+                  }
 
-  runModel(&data,params,ts,functions);
+                  runModel(&data, params, ts, functions);
 
-  size_t ageVerRes = 0;
-  size_t ageHorRes = 0;
-  size_t ageCor= 0;
-  if(params->SAVE_TYPE1==ST_MATRIX){
-    if (params->T1==10001){
-      ageVerRes = (size_t) (params->Z1/5);
-      ageHorRes = (size_t) (params->T1/10);
-      ageCor=0;
+                  size_t ageVerRes = 0;
+                  size_t ageHorRes = 0;
+                  size_t ageCor = 0;
+                  if (params->SAVE_TYPE1 == ST_MATRIX) {
+                    if (params->T1 == 10001) {
+                      ageVerRes = (size_t)(params->Z1 / 5);
+                      ageHorRes = (size_t)(params->T1 / 10);
+                      ageCor = 0;
+                    } else if (params->T1 == 40001) {
+                      ageVerRes = (size_t)(params->Z1 / 5);
+                      ageHorRes = (size_t)(params->T1 / 20);
+                      ageCor = 20000;
+                    }
+                  } else if (params->SAVE_TYPE1 == ST_VECTOR) {
+                    ageVerRes = (size_t)(params->Z1 / 5);
+                    ageHorRes = 1;
+                    ageCor = params->T1 - 11;
+                  }
+
+                  double **age = computeAge(&data, functions, ageVerRes,
+                                            ageHorRes, ageCor);
+                  saveData(&data, params, age, ageVerRes, ageHorRes);
+
+#pragma omp atomic
+                  count++;
+#pragma omp flush(count)
+                  printf("END LOOP : %d/%d\n\n", count, tot);
+                  fflush(stdout);
+                  deleteModelData(&data, params);
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    else if (params->T1==40001){
-      ageVerRes = (size_t) (params->Z1/5);
-      ageHorRes = (size_t) (params->T1/20);
-      ageCor=20000;
-    }
   }
-  else if (params->SAVE_TYPE1==ST_VECTOR){
-    ageVerRes = (size_t) (params->Z1/5);
-    ageHorRes = 1;
-    ageCor=params->T1-11;
-  }
-
-  double** age = computeAge(&data,functions,ageVerRes,ageHorRes,ageCor);
-  saveData(&data,params,age,ageVerRes,ageHorRes);
-
-  #pragma omp atomic
-  count++;
-  #pragma omp flush (count)
-  printf("END LOOP : %d/%d\n\n",count,tot);
-  fflush(stdout);
-  deleteModelData(&data,params);
-
-}}}}}}}}
   char path[120];
-  sprintf(path,"%s/init.txt",params->OUTPUT_PATH);
-  copyFile("init.txt",path);
+  sprintf(path, "%s/init.txt", params->OUTPUT_PATH);
+  copyFile("init.txt", path);
   return succes;
 }
 
-
-double** computeAge(const model_data * const data, const model_functions * const functions,
-                    size_t ageVerRes,size_t ageHorRes,size_t ageCor)
-{
+double **computeAge(const model_data *const data,
+                    const model_functions *const functions, size_t ageVerRes,
+                    size_t ageHorRes, size_t ageCor) {
   // // POST PROCESSING//
-  // //Compute the difference with the age profile for 213 points and compute the mean of the difference
+  // //Compute the difference with the age profile for 213 points and compute
+  // the mean of the difference
   printf("\nComputing age ... ");
   fflush(stdout);
-  double begin3=omp_get_wtime();
-  double** ageRel;
+  double begin3 = omp_get_wtime();
+  double **ageRel;
 
-
-   ageRel = malloc( (size_t) ageVerRes * sizeof(*ageRel));
-   for (size_t i = 0; i < ageVerRes; i++)
-   {
-     ageRel[i] = malloc((ageHorRes+1)*sizeof(ageRel));
+  ageRel = malloc((size_t)ageVerRes * sizeof(*ageRel));
+  for (size_t i = 0; i < ageVerRes; i++) {
+    ageRel[i] = malloc((ageHorRes + 1) * sizeof(ageRel));
   }
-  for(size_t a=ageHorRes; a>0; a--){
-    for(size_t h=1; h<ageVerRes; h++)
-    {
-      float height=h*5;
-      int age=a*10+ageCor;
-      while (height<data->iceThickness[age] && age>0)
-      {
-        height+=((data->acc[age]*31556926*100-data->melt[age]*100-
-                 (data->iceThickness[age]-data->iceThickness[age-1]))*functions->wDef((double)height,
-                 data->iceThickness[age],data->mw)+data->melt[age]*100);
+  for (size_t a = ageHorRes; a > 0; a--) {
+    for (size_t h = 1; h < ageVerRes; h++) {
+      float height = h * 5;
+      int age = a * 10 + ageCor;
+      while (height < data->iceThickness[age] && age > 0) {
+        height += ((data->acc[age] * 31556926 * 100 - data->melt[age] * 100 -
+                    (data->iceThickness[age] - data->iceThickness[age - 1])) *
+                       functions->wDef((double)height, data->iceThickness[age],
+                                       data->mw) +
+                   data->melt[age] * 100);
         age--;
       }
-      ageRel[h-1][0]=h*5;
-      ageRel[h-1][a]=(a*10+ageCor-age)*100;
+      ageRel[h - 1][0] = h * 5;
+      ageRel[h - 1][a] = (a * 10 + ageCor - age) * 100;
     }
   }
-  printf("Age ok in in: %f secondes\n",(double)(omp_get_wtime() - begin3));
+  printf("Age ok in in: %f secondes\n", (double)(omp_get_wtime() - begin3));
 
-  return(ageRel);
+  return (ageRel);
 }
 
-void saveData(const model_data * const data, const model_parameters * const params,
-                    double ** age, size_t ageVerRes,size_t ageHorRes)
-{
-  // //Compute the difference with the borehole  temperature profile below 600 m deep (because upper part of the measurements are affected by seasonality)
+void saveData(const model_data *const data,
+              const model_parameters *const params, double **age,
+              size_t ageVerRes, size_t ageHorRes) {
+  // //Compute the difference with the borehole  temperature profile below 600 m
+  // deep (because upper part of the measurements are affected by seasonality)
   // double tempDiff=0;
   // double tnew2[Z]= {0};
   // for(size_t li=0; li<=(size_t)iceThickness[T-1]-7; li++)
@@ -216,45 +216,51 @@ void saveData(const model_data * const data, const model_parameters * const para
   // tempDiff/=(iceThickness[T-1]);
   //
   // // Generate a file name with the free parameters
-   printf("%s\n","ENTERING SAVE");
+  printf("%s\n", "ENTERING SAVE");
 
-   char fileName[200]="";
-   char path[200]="";
-   sprintf(path, "%s/m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%.0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
-           params->OUTPUT_PATH,data->mw,data->QG*1000,data->pCor,data->tCor,data->tCor2,data->deltaH,
-           data->len,data->flat,"EDC",params->strings[THERMAL][params->THERMAL1],
-           params->strings[FIRN][params->FIRN1],params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY1],
-           params->strings[SCHEME][params->SCHEME1]);
+  char fileName[200] = "";
+  char path[200] = "";
+  sprintf(path,
+          "%s/"
+          "m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%"
+          ".0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
+          params->OUTPUT_PATH, data->mw, data->QG * 1000, data->pCor,
+          data->tCor, data->tCor2, data->deltaH, data->len, data->flat, "EDC",
+          params->strings[THERMAL][params->THERMAL1],
+          params->strings[FIRN][params->FIRN1],
+          params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY1],
+          params->strings[SCHEME][params->SCHEME1]);
   //
-  //Check if the man export directory and the subdirectory are already existing and create them if missing
+  // Check if the man export directory and the subdirectory are already existing
+  // and create them if missing
   struct stat st = {0};
   if (stat(params->OUTPUT_PATH, &st) == -1) {
-  mkdir(params->OUTPUT_PATH, 0700);
+    mkdir(params->OUTPUT_PATH, 0700);
   }
   if (stat(path, &st) == -1) {
     mkdir(path, 0700);
   }
 
   // Save the temperature profile, the melt rate and the age scale
-  sprintf(fileName, "%s.dat","melt_rate");
-  saveTable(data->melt,fileName,path,params->T1);
-  sprintf(fileName, "%s.dat","frozen_ice");
-  saveTable(data->freeze,fileName,path,params->T1);
-  if(params->SAVE_TYPE1==ST_MATRIX){
-    sprintf(fileName, "%s.dat","age_matrix");
-    save2DTable(age,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
-    sprintf(fileName, "%s.dat","temp_matrix");
-    if (params->T1==10001){
-      save2DTable(data->temperature,fileName,path,params->Z1,params->T1,1,10,0);
+  sprintf(fileName, "%s.dat", "melt_rate");
+  saveTable(data->melt, fileName, path, params->T1);
+  sprintf(fileName, "%s.dat", "frozen_ice");
+  saveTable(data->freeze, fileName, path, params->T1);
+  if (params->SAVE_TYPE1 == ST_MATRIX) {
+    sprintf(fileName, "%s.dat", "age_matrix");
+    save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
+    sprintf(fileName, "%s.dat", "temp_matrix");
+    if (params->T1 == 10001) {
+      save2DTable(data->temperature, fileName, path, params->Z1, params->T1, 1,
+                  10, 0);
+    } else if (params->T1 == 40001) {
+      save2DTable(data->temperature, fileName, path, params->Z1, params->T1, 1,
+                  10, 20000);
     }
-    else if(params->T1==40001){
-      save2DTable(data->temperature,fileName,path,params->Z1,params->T1,1,10,20000);
-    }
-  }
-  else if(params->SAVE_TYPE1==ST_VECTOR){
-    sprintf(fileName, "%s.dat","age_profile");
-    save2DTable(age,fileName,path,ageVerRes,ageHorRes+1,1,1,0);
-    sprintf(fileName, "%s.dat","temp_profile");
-    saveTable(data->tnew,fileName,path,params->Z1);
+  } else if (params->SAVE_TYPE1 == ST_VECTOR) {
+    sprintf(fileName, "%s.dat", "age_profile");
+    save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
+    sprintf(fileName, "%s.dat", "temp_profile");
+    saveTable(data->tnew, fileName, path, params->Z1);
   }
 }
