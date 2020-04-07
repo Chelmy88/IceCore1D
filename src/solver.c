@@ -40,31 +40,35 @@
 //double b[Z]  --> Vector to be multiplied with he inverse matrix in the C-N scheme (explicit part)
 
 
-void spin_up(const model_functions * const functions, double *told, double thick,
+void spin_up(const model_functions * const functions,const model_parameters * const params, double *told, double thick,
             double tsurf,double acc,double QG,double mw,double* tborder,
             double deltaH,int border,double len, double flat,
             double* melt, double *density)
 {
     // Perform a spin up for the time indicated in header (time in hyr). The spin up is done with a 2-passes implicit scheme.
+    int Z = params->Z1;
     double begin3=omp_get_wtime();
     int thickness=(int)thick;
     int i,li=0;
-    double L=333500;
-    double rho[Z],rhoIce[Z]= {[0 ... Z-1] = 921};
-    double a[Z],b[Z],a2[Z],b2[Z]= {0};
+    real L=333500;
+    real rho[Z],rhoIce[Z];
+    memset(rho, 921, Z*sizeof(real));
+    memset(rhoIce, 921, Z*sizeof(real));
+    double a[Z],b[Z],a2[Z],b2[Z];
     double m,f,tground=0;
-    double K[Z],cp[Z], w[Z], w_def[Z]= {0};
+    double K[Z],cp[Z], w[Z], w_def[Z];
     double delt=31556926.*100.;
     double delz=1.;
     double dhdt=0;
-    double se[Z]= {0};
+    double se[Z];
     for(li=0; li <=thickness; li++)
     {
         w_def[li]=functions->wDef ((double) li, (double) thickness,mw);
     }
-    for(i=0; i<S; i++)
+    for(i=0; i<params->S1; i++)
     {
-        double tint[Z],rho_first[Z],se_first[Z]= {0};
+        double tint[Z],rho_first[Z],se_first[Z];
+
         functions->setRho(rho,rhoIce, told, thickness, acc);
         setHeatVar(functions, K, cp, told, thickness,rho,rhoIce);
         computeMelt(functions, &m,&tground,rho,L,K[1],cp[0],told[1],told[0],thick,delz,QG,&f);
@@ -75,6 +79,7 @@ void spin_up(const model_functions * const functions, double *told, double thick
         for(li=0; li <=thickness; li++)
         {
             rho_first[li]=rho[li];
+            se_first[li]=se[li];
         }
         // Second pass
         functions->setRho(rho,rhoIce, tint, thickness, acc);
@@ -102,21 +107,28 @@ void spin_up(const model_functions * const functions, double *told, double thick
 }
 
 
-void t_solve(const model_functions * const functions, double *temperature, int time, double thick, double thickFuture, double tsurf, double acc, double* melt, double QG, double mw,double* tborder,double deltaH,int border,double len, double flat,double* freeze, double *density)
+void t_solve(const model_functions * const functions, const model_parameters * const params, double *temperature, int time,
+             double thick, double thickFuture, double tsurf, double acc, double* melt,
+             double QG, double mw,double* tborder,double deltaH,int border,double len,
+             double flat,double* freeze, double *density)
 {
 
+    int Z = params->Z1;
     int thickness=(int)thick;
-    double told[Z]= {0};
+    double told[Z];
+    memset(told, 0, Z*sizeof(real));
     int i,li=0;
     double L=333500;
-    double rho[Z],rhoIce[Z]= {[0 ... Z-1] = 921};
-    double a[Z],b[Z],a2[Z],b2[Z]= {0};
+    double rho[Z],rhoIce[Z];
+    memset(rho, 921, Z*sizeof(real));
+    memset(rhoIce, 921, Z*sizeof(real));
+    double a[Z],b[Z],a2[Z],b2[Z];
     double m,f,tground=0;
-    double K[Z],cp[Z], w[Z], w_def[Z]= {0};
+    double K[Z],cp[Z], w[Z], w_def[Z];
     double delt=31556926.*100.;
     double delz=1.;
     double dhdt=(thickFuture-thick)/delt;
-    double se[Z]= {0};
+    double se[Z];
 
     f=freeze[time-1];
 
@@ -127,10 +139,10 @@ void t_solve(const model_functions * const functions, double *temperature, int t
     }
     double tsurf_old=told[thickness];
 
-    if(strcmp(TYPE,"CN")==0)//C-N scheme
+    if(params->SCHEME1==SC_CN)//C-N scheme
     {
         double rep=1; //Define the number of passes-1 in the C-N scheme
-        double tint[Z],rho_first[Z],rho_mean[Z],se_first[Z]= {0};
+        double tint[Z],rho_first[Z],rho_mean[Z],se_first[Z];
         double cp0,K1=0;
 
         functions->setRho(rho,rhoIce, told, thickness, acc);
@@ -139,15 +151,16 @@ void t_solve(const model_functions * const functions, double *temperature, int t
         setABW(a,b,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
         setInternal(functions,se,rho,w,cp,K,delt,thickness,told,deltaH,tborder, border,len,flat);
         integrate_CN(tint,told, a, b, a, b, tground, tsurf, thickness,se);
+
         for(li=0; li <=thickness; li++)
         {
             rho_first[li]=rho[li];
+            se_first[li]=se[li];
         }
         cp0=cp[0];
         K1=K[1];
         melt[time]=m*31556926.;
         freeze[time]=f;
-        f=freeze[time];
 
         for (i=0; i<(int)rep; i++)
         {
@@ -161,12 +174,10 @@ void t_solve(const model_functions * const functions, double *temperature, int t
             tint[0]=tground;
             setABW(a2,b2,w,cp,K,rho,delt,delz,acc,m,dhdt,w_def,thickness,rhoIce);
             setInternal(functions,se,rho,w,cp,K,delt,thickness,tint,deltaH,tborder, border,len,flat);
+
             for(li=0; li <=thickness; li++)
             {
-                if(se[li]>0)
-                {
-                    se[li]=(se[li]+se_first[li])/2;
-                }
+               se[li]=(se[li]+se_first[li])/2;
             }
             integrate_CN(tint,told, a, b, a2, b2, tground, tsurf, thickness,se);
         }
@@ -179,7 +190,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
         freeze[time]+=f;
         freeze[time]/=2;
     }
-    else if(strcmp(TYPE,"EXPL")==0) // Explicit scheme
+    else if(params->SCHEME1==SC_EXPL) // Explicit scheme
     {
         functions->setRho(rho,rhoIce, told, thickness, acc);
         setHeatVar(functions,K, cp, told, thickness,rho,rhoIce);
@@ -192,7 +203,7 @@ void t_solve(const model_functions * const functions, double *temperature, int t
     }
     for(li=0; li <=thickness; li++)
     {
-		density[li] = rho[li];
+		    density[li] = rho[li];
         temperature[li]=told[li];
     }
 }
@@ -203,16 +214,16 @@ void t_solve(const model_functions * const functions, double *temperature, int t
 void integrate_expl(double* told, double* a, double* b, double tground, double tsurf, double tsurf_old, int thickness, double* se)
 {
     int li,loop=0;
-    double c1[Z]= {0};
-    double c2[Z]= {0};
-    double c3[Z]= {0};
+    double c1[thickness+1];
+    double c2[thickness+1];
+    double c3[thickness+1];
     for(li=0; li <=thickness; li++)
     {
         c1[li]=(b[li]-a[li])/(365*100);
         c2[li]=-2*b[li]/(365*100)+1;
         c3[li]=(b[li]+a[li])/(365*100);
     }
-    double tnew[Z]= {0};
+    double tnew[thickness+1];
     //internal loop for a daily time step
     for(loop=0; loop<100*365; loop++)
     {
@@ -234,10 +245,10 @@ void integrate_expl(double* told, double* a, double* b, double tground, double t
 void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* alpha1,double* beta1,double tground,double tsurf,int thickness,double* se)
 {
 
-    double l[Z]= {0};
-    double d[Z]= {0};
-    double r[Z]= {0};
-    double b[Z]= {0};
+    double l[thickness+1];
+    double d[thickness+1];
+    double r[thickness+1];
+    double b[thickness+1];
     int li,i=0;
     double fact=0.7;
     for(li=1; li <thickness; li++)
@@ -246,11 +257,10 @@ void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* 
         d[li]=fact*2*beta1[li]+1;
         r[li]=fact*(-beta1[li]-alpha1[li]);
         b[li]=told[li-1]*(1-fact)*(beta[li]-alpha[li])+told[li]*(1-(1-fact)*2*beta[li])+told[li+1]*(1-fact)*(beta[li]+alpha[li])+se[li];
-        se[li]=se[li];
     }
     b[1]=told[0]*(1-fact)*(beta[1]-alpha[1])+told[1]*(1-(1-fact)*2*beta[1])+told[2]*(1-fact)*(beta[1]+alpha[1])-tground*fact*(-beta1[1]+alpha1[1])+se[1];
     b[thickness-1]=told[thickness-2]*(1-fact)*(beta[thickness-1]-alpha[thickness-1])+told[thickness-1]*(1-(1-fact)*2*beta[thickness-1])+told[thickness]*(1-fact)*(beta[thickness-1]+alpha[thickness-1])-tsurf*fact*(-beta1[thickness-1]-alpha1[thickness-1])+se[thickness-1];
-    double dp[Z],bp[Z],x[Z]= {0};
+    double dp[thickness+1],bp[thickness+1],x[thickness+1];
     dp[1]=d[1];
     bp[1]=b[1];
     for(i=1; i<thickness; i++)
@@ -263,22 +273,22 @@ void integrate_CN(double* tint, double* told,double* alpha,double* beta,double* 
     {
         x[i]=(bp[i]-r[i]*x[i+1])/dp[i];
     }
-    tint[0]=tground,
-            tint[thickness]=tsurf;
+    tint[0]=tground;
+    tint[thickness]=tsurf;
     for (i=1; i<thickness; i++)
     {
         tint[i]=x[i];
     }
-
-
 }
 
 //Scale the temperature profile to the next thickness value
 void tempScale(double* told, double thick,double thickFuture,double tsurf)
 {
-    double temperature[Z]= {0};
     int thickness=(int)thick;
     int thicknessFuture=(int) thickFuture;
+    double temperature[thicknessFuture];
+    memset(temperature,0,thicknessFuture);
+
     int li=0;
     double deltaThick=thicknessFuture-thickness;
     if (deltaThick>0)//If next thickness is bigger, ass some layers at surface temperature
@@ -309,7 +319,10 @@ void tempScale(double* told, double thick,double thickFuture,double tsurf)
             temperature[li]=told[li];
         }
     }
-    for(li=0; li <Z; li++)
+    int reset_size=deltaThick>0?thicknessFuture+1:thickness+1;
+    //printf("%d\n",reset_size);
+    memset(told,0,reset_size);
+    for(li=0; li <=3400; li++)
     {
         told[li]=temperature[li];
     }

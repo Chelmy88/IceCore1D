@@ -25,6 +25,7 @@ void runModel(model_data *data,const model_parameters * const params,
     data->acc[li]=ts->accLoad[li]*3600*24*365/31556926;
     //surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
   }
+
   real t0=data->surfaceTemp[T1-1];
   real tLGM=data->surfaceTemp[T1-257];
 
@@ -59,7 +60,8 @@ void runModel(model_data *data,const model_parameters * const params,
     {
       spin_up_temp2[li]=Tmelt2+(Tsurf-Tmelt2)*pow(li/(data->iceThickness[0]-data->deltaH),1);
     }
-    spin_up(functions, spin_up_temp2,data->iceThickness[0]-data->deltaH,data->surfaceTemp[0],data->acc[0],
+
+    spin_up(functions, params,spin_up_temp2,data->iceThickness[0]-data->deltaH,data->surfaceTemp[0],data->acc[0],
             data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,data->flat,
             data->melt,dens);
     for(li=0; li <=(size_t)(data->iceThickness[0]-data->deltaH); li++)
@@ -67,17 +69,19 @@ void runModel(model_data *data,const model_parameters * const params,
       temperatureBorder[li]=spin_up_temp2[li];
     }
   }
+
+
   //Spin up the main profile first without the valley effect and a second time if the valley effect is enabled
   for(li=0; li <=(size_t)data->iceThickness[0]; li++)
   {
     spin_up_temp[li]=Tmelt+(Tsurf-Tmelt)*pow(li/data->iceThickness[0],1);
   }
-  spin_up(functions, spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+  spin_up(functions, params,spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
           data->QG,data->mw,temperatureBorder,data->deltaH,1,data->len,
           data->flat,data->melt,dens);
 
   if(data->deltaH!=0){
-    spin_up(functions, spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
+    spin_up(functions, params,spin_up_temp,data->iceThickness[0],data->surfaceTemp[0],data->acc[0],
             data->QG,data->mw,temperatureBorder,data->deltaH,0,data->len,
             data->flat,data->melt,dens);
   }
@@ -88,6 +92,7 @@ void runModel(model_data *data,const model_parameters * const params,
     data->density[li][0]=dens[li];
     data->tnew[li]=spin_up_temp[li];
   }
+
 
   // RUN MODEL//
 
@@ -108,16 +113,19 @@ void runModel(model_data *data,const model_parameters * const params,
     }
     if(data->deltaH!=0)
     {
-      t_solve(functions, temperatureBorder,time, data->iceThickness[time-1]-data->deltaH,
+
+      t_solve(functions, params, temperatureBorder,time, data->iceThickness[time-1]-data->deltaH,
               data->iceThickness[time]-data->deltaH, data->surfaceTemp[time],
               data->acc[time],data->melt,data->QG,data->mw,temperatureBorder,
               data->deltaH,1,data->len,data->flat,data->freeze,dens);
+
     }
-    t_solve(functions, data->tnew,time, data->iceThickness[time-1], data->iceThickness[time],
+    t_solve(functions, params, data->tnew,time, data->iceThickness[time-1], data->iceThickness[time],
             data->surfaceTemp[time],data->acc[time],data->melt,data->QG,data->mw,
             temperatureBorder,data->deltaH,0,data->len,data->flat,data->freeze,dens);
 
-    tempScale(data->tnew,  data->iceThickness[time-1], data->iceThickness[time],
+
+    tempScale(data->tnew, data->iceThickness[time-1], data->iceThickness[time],
               data->surfaceTemp[time]);
 
     if(data->deltaH!=0)
@@ -125,6 +133,7 @@ void runModel(model_data *data,const model_parameters * const params,
       tempScale(temperatureBorder,data->iceThickness[time-1]-data->deltaH,
                 data->iceThickness[time]-data->deltaH, data->surfaceTemp[time]);
     }
+
     for(li=0; li <=(size_t)data->iceThickness[time]; li++)
     {
       data->temperature[li][time]=data->tnew[li];

@@ -68,6 +68,41 @@ void deleteTimeSeries(time_series *ts)
 
 bool initModelParameters(model_parameters *params, char* fileName)
 {
+  params->strings = (char***)malloc(8*sizeof(char**));
+
+  for(size_t i = 0; i < DATA_ENUM_SIZE; i++){
+      params->strings[i] = (char**)malloc(5*sizeof(char*));
+      for(size_t j = 0; j < 5; j++){
+          params->strings[i][j] = (char*)malloc(50*sizeof(char));
+      }
+  }
+
+  params->strings[SAVE_TYPE][ST_MATRIX]="MATRIX";
+  params->strings[SAVE_TYPE][ST_VECTOR]="VECTOR";
+
+  params->strings[SCHEME][SC_CN]="CN";
+  params->strings[SCHEME][SC_EXPL]="EXPL";
+
+  params->strings[THERMAL][TH_CP]="CP";
+  params->strings[THERMAL][TH_GO]="GO";
+
+  params->strings[FIRN][FI_SC]="SC";
+  params->strings[FIRN][FI_CP]="CP";
+
+  params->strings[RHO_TYPE][RHO_FIRN]="FIRN";
+  params->strings[RHO_TYPE][RHO_CONST]="CONST";
+
+  params->strings[VERTICAL_PROFILE][VP_FI]="FI";
+  params->strings[VERTICAL_PROFILE][VP_PA]="PA";
+
+  params->strings[INTERNAL_ENERGY][IE_ON]="ON";
+  params->strings[INTERNAL_ENERGY][IE_OFF]="OFF";
+
+  params->strings[MELTING][SC_EXPL]="FREE_MELT";
+  params->strings[MELTING][SC_EXPL]="FREEZING_NO_ICE";
+  params->strings[MELTING][SC_EXPL]="FREEZING";
+
+
   params->Z1=-1;
   params->T1=-1;
   params->S1=-1;
@@ -102,15 +137,6 @@ bool initModelParameters(model_parameters *params, char* fileName)
   return readInitFile(params, fileName);
 }
 
-char *SAVE_TYPE_STR[3] = {"ST_MATRIX", "ST_VECTOR", "ST_UNSET"};
-char *SCHEME_STR[3] = {"SC_CN", "SC_EXPL", "SC_UNSET"};
-char *THERMAL_STR[3] = {"TH_CP", "TH_GO", "TH_UNSET"};
-char *FIRN_STR[3] = {"FI_SC", "FI_CP", "FI_UNSET"};
-char *RHO_TYPE_STR[3] = {"RHO_FIRN", "RHO_CONST", "RHO_UNSET"};
-char *VERTICAL_PROFILE_STR[3] = {"VP_FI", "VP_PA", "VP_UNSET"};
-char *INTERNAL_ENERGY_STR[3] = {"IE_ON", "IE_OFF", "IE_UNSET"};
-char *MELTING_STR[4] = {"ME_FREE_MELT", "ME_FREEZING_NO_ICE", "ME_FREEZING", "ME_UNSET"};
-
 void printModelParameters(model_parameters *params)
 {
   printf("\t--Model Parameters--\n");
@@ -123,15 +149,15 @@ void printModelParameters(model_parameters *params)
   printf("\tAGE_FILE\t:\t%s\n", params->AGE_FILE);
   printf("\tBOREHOLE_TEMPERATURE_FILE\t:\t%s\n", params->BOREHOLE_TEMPERATURE_FILE);
   printf("\tOUTPUT_PATH\t:\t%s\n", params->OUTPUT_PATH);
-  printf("\tSAVE_TYPE\t:\t%s\n", SAVE_TYPE_STR[params->SAVE_TYPE1]);
-  printf("\tSCHEME\t\t:\t%s\n", SCHEME_STR[params->SCHEME1]);
+  printf("\tSAVE_TYPE\t:\t%s\n", params->strings[SAVE_TYPE][params->SAVE_TYPE1]);
+  printf("\tSCHEME\t\t:\t%s\n", params->strings[SCHEME][params->SCHEME1]);
   printf("\tRHOSNOW\t\t:\t%d\n", params->rhoSnow1);
-  printf("\tTHERMAL\t\t:\t%s\n", THERMAL_STR[params->THERMAL1]);
-  printf("\tFIRN\t\t:\t%s\n", FIRN_STR[params->FIRN1]);
-  printf("\tRHO\t\t:\t%s\n", RHO_TYPE_STR[params->RHO1]);
-  printf("\tVERTICAL_PROFILE:\t%s\n", VERTICAL_PROFILE_STR[params->VERTICAL_PROFILE1]);
-  printf("\tINTERNAL_ENERGY\t:\t%s\n", INTERNAL_ENERGY_STR[params->INTERNAL_ENERGY1]);
-  printf("\tMELTING\t\t:\t%s\n", MELTING_STR[params->MELTING1]);
+  printf("\tTHERMAL\t\t:\t%s\n", params->strings[THERMAL][params->THERMAL1]);
+  printf("\tFIRN\t\t:\t%s\n", params->strings[FIRN][params->FIRN1]);
+  printf("\tRHO\t\t:\t%s\n", params->strings[RHO_TYPE][params->RHO1]);
+  printf("\tVERTICAL_PROFILE:\t%s\n", params->strings[VERTICAL_PROFILE][params->VERTICAL_PROFILE1]);
+  printf("\tINTERNAL_ENERGY\t:\t%s\n", params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY1]);
+  printf("\tMELTING\t\t:\t%s\n", params->strings[MELTING][params->MELTING1]);
   printf("\tMW\t\t:\t%.2f", params->values.mw[0]);
   for(size_t i=1; i<params->values.mw_n;++i)
   {
@@ -180,8 +206,6 @@ void printModelParameters(model_parameters *params)
     printf(" %.2f", params->values.flat[i]);
   }
   printf("\n");
-
-
 }
 
 

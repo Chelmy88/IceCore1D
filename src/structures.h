@@ -33,6 +33,9 @@ enum RHO_TYPE_ENUM {RHO_FIRN, RHO_CONST, RHO_UNSET};
 enum VERTICAL_PROFILE_ENUME {VP_FI, VP_PA, VP_UNSET};
 enum INTERNAL_ENERGY_ENUM {IE_ON, IE_OFF, IE_UNSET};
 enum MELTING_ENUM {ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET};
+
+enum DATA_ENUM{SAVE_TYPE,SCHEME,THERMAL,FIRN,RHO_TYPE,VERTICAL_PROFILE,INTERNAL_ENERGY,MELTING,DATA_ENUM_SIZE};
+
 // Structure to store time series informations
 typedef struct _model_parameters {
   int Z1; //3400//height of the table
@@ -53,6 +56,7 @@ typedef struct _model_parameters {
   char* AGE_FILE; //"output"//Directory to store data file into
   char* BOREHOLE_TEMPERATURE_FILE; //"output"//Directory to store data file into
   char* OUTPUT_PATH; //"output"//Directory to store data file into
+  char*** strings;
   model_values values;
 }model_parameters;
 

@@ -1,5 +1,5 @@
 #include "physicalFunctions.h"
-
+#include <stdio.h>
 //*************DEFINTION OF THE FUNCTIONS*************
 
 //*************Computational functions*************
@@ -14,7 +14,8 @@ void setRho_FIRN(double* rho, double *rhoIce,double* temp, int thickness,double 
     double k1=575*exp(-21400/(R*temp[thickness]));
     acc=acc*31556926.;
     double z55 = 1/(rhoIceConst/1000*k0)*(log(0.55/(rhoIceConst/1000-0.55))-log(rhoSnowConst/(rhoIceConst-rhoSnowConst)));
-    double z0[Z]= {0};
+    double z0[thickness+1];
+
     for (int li=0; li<=thickness; li++)
     {
           rhoIce[li]=916.5-0.14438*(temp[li]-271.16)-0.00015175*(temp[li]-273.16)*(temp[li]-273.16);
@@ -214,21 +215,23 @@ void setInternal(const model_functions * const functions,double *se,double *rho,
 {
     int li=0;
     int deltaH=(int)dH;
+
     //Internal energy production
     functions->setSe(se,rho,w, cp, thickness, told, delt);
+
     //Valley effect
-    if(deltaH>0 && border==0)
-    {
-        for(li=0; li<=thickness-deltaH; li++)
-        {
-            se[li+deltaH]+=4*K[li+deltaH]*2*(tborder[li]-told[li+deltaH])*delt/(rho[li+deltaH]*cp[li+deltaH]*len*len);
-        }
+     if(deltaH>0 && border==0)
+     {
+         for(li=0; li<=thickness-deltaH; li++)
+         {
+             se[li+deltaH]+=4*K[li+deltaH]*2*(tborder[li]-told[li+deltaH])*delt/(rho[li+deltaH]*cp[li+deltaH]*len*len);
+         }
         for(li=1; li<deltaH; li++)
         {
             double l=((double)li*(double)li/((double)deltaH* (double)deltaH));
             se[li]+=K[li]*2*4*(told[0]+li*6.50E-4-told[li])/((flat+l*(len-flat))*(flat+l*(len-flat))*rho[li]*cp[li])*delt;
         }
-    }
+     }
 }
 
 void setSe_ON(double *se,double *rho,double *w, double *cp, int thickness, double* told,double delt)
