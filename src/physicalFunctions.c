@@ -6,20 +6,45 @@
 
 void setRho_FIRN(double *rho, double *rhoIce, double *temp, int thickness,
                  double acc) {
-  double rhoIceConst = 917;
-  double rhoSnowConst = 350;
-  double R = 8.3144;
-  double k0 = 11 * exp(-10160 / (R * temp[thickness]));
-  double k1 = 575 * exp(-21400 / (R * temp[thickness]));
-  acc = acc * 31556926.;
-  double z55 = 1 / (rhoIceConst / 1000 * k0) *
-               (log(0.55 / (rhoIceConst / 1000 - 0.55)) -
-                log(rhoSnowConst / (rhoIceConst - rhoSnowConst)));
-  double z0[thickness + 1];
+  const double rhoIceConst = 917;
+  const double rhoSnowConst = 350;
+  const double R = 8.3144;
+  const double g = 9.81;
 
-  for (int li = 0; li <= thickness; li++) {
+  const double k0 = 11 * exp(-10160 / (R * temp[thickness]));
+  const double k1 = 575 * exp(-21400 / (R * temp[thickness]));
+  acc = acc * 31556926.;
+  const real z55 = 1 / (rhoIceConst / 1000 * k0) *
+                   (log(0.55 / (rhoIceConst / 1000 - 0.55)) -
+                    log(rhoSnowConst / (rhoIceConst - rhoSnowConst)));
+  real z0[thickness + 1];
+  real pressure[thickness + 2];
+  memset(pressure, 0, (thickness + 2) * sizeof(real));
+  // First pass without pressure
+  for (int li = thickness; li >= 0; li--) {
     rhoIce[li] = 916.5 - 0.14438 * (temp[li] - 271.16) -
                  0.00015175 * (temp[li] - 273.16) * (temp[li] - 273.16);
+    if ((thickness - li) < z55) {
+      z0[li] = exp(rhoIce[li] / 1000 * k0 * (thickness - li)) * rhoSnowConst /
+               (rhoIce[li] - rhoSnowConst);
+      rho[li] = rhoIce[li] * z0[li] / (1 + z0[li]);
+    } else if (li > 2000) {
+      z0[li] =
+          exp(rhoIce[li] / 1000 * k1 * (thickness - li - z55) / sqrt(acc)) *
+          0.55 / (rhoIce[li] / 1000 - 0.55);
+      rho[li] = rhoIce[li] * z0[li] / (1 + z0[li]);
+    } else {
+      rho[li] = rhoIce[li];
+    }
+    if (rho[li] > rhoIce[li]) {
+      rho[li] = rhoIce[li];
+    }
+    pressure[li] += g * rhoIce[li] + pressure[li + 1];
+  }
+
+  // second pass with pressure
+  for (int li = 0; li <= thickness; li++) {
+    rhoIce[li] += 1.1e-7 * pressure[li];
     if ((thickness - li) < z55) {
       z0[li] = exp(rhoIce[li] / 1000 * k0 * (thickness - li)) * rhoSnowConst /
                (rhoIce[li] - rhoSnowConst);
