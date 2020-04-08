@@ -15,7 +15,8 @@
 // Mac OS
 // The only parameters defined in main.c are the free parameters of the model,
 // the correction to the boundary condition time series, and the initial
-// temperature profile for spin up For any other modification see the main.h file
+// temperature profile for spin up For any other modification see the main.h
+// file
 
 // Include the header file main.h, containing all the key functions and
 // parameters.
@@ -262,5 +263,12 @@ void saveData(const model_data *const data,
     save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
     sprintf(fileName, "%s.dat", "temp_profile");
     saveTable(data->tnew, fileName, path, params->Z1);
+    real density[params->Z1];
+    memset(density, 0, params->Z1 * sizeof(real));
+    for (int i = 0; i < params->Z1; i++) {
+      density[i] = data->density[i][params->T1 - 1];
+    }
+    sprintf(fileName, "%s.dat", "density_profile");
+    saveTable(density, fileName, path, params->Z1);
   }
 }
