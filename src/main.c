@@ -219,18 +219,23 @@ void saveData(const model_data *const data,
   // // Generate a file name with the free parameters
   printf("%s\n", "ENTERING SAVE");
 
-  char fileName[200] = "";
-  char path[200] = "";
+  char fileName[400] = "";
+  char path[400] = "";
   sprintf(path,
           "%s/"
           "m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%"
-          ".0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
+          ".0f_%s_Rho_Snow_%d_Thermal_Ice_%s_Thermal_Firn_%s_Heat_Capacity_%s_"
+          "Rho_Firn_%s_"
+          "Internal_Energy_%s_Scheme_%s",
           params->OUTPUT_PATH, data->mw, data->QG * 1000, data->pCor,
           data->tCor, data->tCor2, data->deltaH, data->len, data->flat, "EDC",
-          params->strings[THERMAL_ICE][params->THERMAL_ICE],
+          params->RHO_SNOW, params->strings[THERMAL_ICE][params->THERMAL_ICE],
           params->strings[THERMAL_FIRN][params->THERMAL_FIRN],
+          params->strings[HEAT_CAPACITY][params->HEAT_CAPACITY],
+          params->strings[RHO_FIRN][params->RHO_FIRN],
           params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
           params->strings[SCHEME][params->SCHEME]);
+  printf("1 %s", path);
   //
   // Check if the man export directory and the subdirectory are already existing
   // and create them if missing
