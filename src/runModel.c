@@ -133,7 +133,7 @@ void runModel(model_data *data, const model_parameters *const params,
     for (li = 0; li <= (size_t)data->iceThickness[time]; li++) {
       data->temperature[li][time] = data->tnew[li];
       data->density[li][time] = dens[li];
-      data->density[li][time] = ice_density[li];
+      data->ice_density[li][time] = ice_density[li];
     }
     time_for_loop += (real)(omp_get_wtime() - begin2); // Store the loop time
   }
