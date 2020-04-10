@@ -40,7 +40,7 @@ void saveTable(double *table, const char *const name, const char *const path,
   // size should be passed as parameter.
   FILE *fp;
   int li = 0;
-  char full_path[180] = "";
+  char full_path[400] = "";
   sprintf(full_path, "%s/%s", path, name);
   if ((fp = fopen(full_path, "w+")) == NULL) {
     printf("Cannot open file: %s\n", full_path);
@@ -63,7 +63,7 @@ void save2DTable(double **table, const char *const name, const char *const path,
   FILE *fp;
   int li = 0;
   int co = 0;
-  char full_path[180] = "";
+  char full_path[400] = "";
   sprintf(full_path, "%s/%s", path, name);
   if ((fp = fopen(full_path, "w+")) == NULL) {
     printf("[E] Cannot open file: %s\n", full_path);
@@ -99,7 +99,7 @@ void save2DTable_top(double **table, const char *const name,
   int li = 0;
   int co = 0;
   int startC = 0;
-  char full_path[180] = "";
+  char full_path[400] = "";
   sprintf(full_path, "%s/%s", path, name);
   if ((fp = fopen(full_path, "w+")) == NULL) {
     printf("Cannot open file: %s\n", full_path);
