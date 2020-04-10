@@ -8,12 +8,13 @@ void runModel(model_data *data, const model_parameters *const params,
   size_t Z = params->Z;
   size_t T = params->T;
 
-  real *spin_up_temp, *spin_up_temp2, *temperatureBorder, *dens;
+  real *spin_up_temp, *spin_up_temp2, *temperatureBorder, *dens, *ice_density;
 
   spin_up_temp = calloc(params->Z, sizeof(real));
   spin_up_temp2 = calloc(params->Z, sizeof(real));
   temperatureBorder = calloc(params->Z, sizeof(real));
   dens = calloc(params->Z, sizeof(real));
+  ice_density = calloc(params->Z, sizeof(real));
 
   // SET BC VALUES //
   // Loop over the time steps to implement the correction on the time series
@@ -113,12 +114,12 @@ void runModel(model_data *data, const model_parameters *const params,
               data->iceThickness[time] - data->deltaH, data->surfaceTemp[time],
               data->acc[time], data->melt, data->QG, data->mw,
               temperatureBorder, data->deltaH, 1, data->len, data->flat,
-              data->freeze, dens);
+              data->freeze, dens, ice_density);
     }
     t_solve(functions, params, data->tnew, time, data->iceThickness[time - 1],
             data->iceThickness[time], data->surfaceTemp[time], data->acc[time],
             data->melt, data->QG, data->mw, temperatureBorder, data->deltaH, 0,
-            data->len, data->flat, data->freeze, dens);
+            data->len, data->flat, data->freeze, dens, ice_density);
 
     tempScale(data->tnew, data->iceThickness[time - 1],
               data->iceThickness[time], data->surfaceTemp[time]);
@@ -132,6 +133,7 @@ void runModel(model_data *data, const model_parameters *const params,
     for (li = 0; li <= (size_t)data->iceThickness[time]; li++) {
       data->temperature[li][time] = data->tnew[li];
       data->density[li][time] = dens[li];
+      data->density[li][time] = ice_density[li];
     }
     time_for_loop += (real)(omp_get_wtime() - begin2); // Store the loop time
   }
@@ -140,6 +142,8 @@ void runModel(model_data *data, const model_parameters *const params,
   free(spin_up_temp2);
   free(temperatureBorder);
   free(dens);
+  free(ice_density);
+
   // melt[0]=melt[1];
   // Print the time for the run and the individual loop mean time
   printf("\nIntegration ok in: %f secondes  ", time_for_loop);

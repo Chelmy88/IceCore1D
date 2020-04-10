@@ -106,7 +106,7 @@ void t_solve(const model_functions *const functions,
              int time, double thick, double thickFuture, double tsurf,
              double acc, double *melt, double QG, double mw, double *tborder,
              double deltaH, int border, double len, double flat, double *freeze,
-             double *density) {
+             double *density, double *ice_density) {
 
   int Z = params->Z;
   int thickness = (int)thick;
@@ -200,6 +200,7 @@ void t_solve(const model_functions *const functions,
     freeze[time] = f;
   }
   for (li = 0; li <= thickness; li++) {
+    ice_density[li] = rhoIce[li];
     density[li] = rho[li];
     temperature[li] = told[li];
   }

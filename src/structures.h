@@ -114,6 +114,7 @@ void deleteTimeSeries(time_series *ts);
 typedef struct _model_data {
   real **temperature;
   real **density;
+  real **ice_density;
   real *tnew;
   real *surfaceTemp;
   real *iceThickness;
@@ -146,7 +147,7 @@ typedef struct _model_functions {
   // and t_solve()
   void (*setThermalIce)(double *K, double *temperature, int thickness);
   void (*setThermalFirn)(double *K, double *rho, double *rhoIce, double *cp,
-                         int thickness);
+                         int thickness, double *temperature);
   void (*setHeatCapacity)(double *cp, double *temperature, int thickness);
 
   void (*computeMelt)(double diff, double tmelt, double *m, double *tground,

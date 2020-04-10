@@ -81,7 +81,7 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[HEAT_CAPACITY][CP_CP] = "CP";
   params->strings[HEAT_CAPACITY][CP_AL] = "AL";
 
-  params->strings[RHO_FIRN][RHO_FIRN] = "HL";
+  params->strings[RHO_FIRN][RF_HL] = "HL";
   params->strings[RHO_FIRN][RF_CONST] = "CONST";
 
   params->strings[VERTICAL_PROFILE][VP_FI] = "FI";
@@ -234,6 +234,17 @@ bool initModelData(model_data *data, const model_parameters *const params,
     }
   }
 
+  data->ice_density = calloc(params->Z, sizeof(real *));
+  if (!data->ice_density) {
+    return false;
+  }
+  for (int li = 0; li < params->Z; li++) {
+    data->ice_density[li] = calloc(params->T, sizeof(real));
+    if (!data->ice_density[li]) {
+      return false;
+    }
+  }
+
   data->surfaceTemp = calloc(params->T, sizeof(real *));
   if (!data->surfaceTemp) {
     return false;
@@ -290,8 +301,13 @@ void deleteModelData(model_data *data, const model_parameters *const params) {
     double *currentIntPtr = data->density[li];
     free(currentIntPtr);
   }
+  for (int li = 0; li < params->Z; li++) {
+    double *currentIntPtr = data->ice_density[li];
+    free(currentIntPtr);
+  }
   free(data->temperature);
   free(data->density);
+  free(data->ice_density);
   free(data->tnew);
   free(data->surfaceTemp);
   free(data->iceThickness);

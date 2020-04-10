@@ -275,5 +275,12 @@ void saveData(const model_data *const data,
     }
     sprintf(fileName, "%s.dat", "density_profile");
     saveTable(density, fileName, path, params->Z);
+    real ice_density[params->Z];
+    memset(ice_density, 0, params->Z * sizeof(real));
+    for (int i = 0; i < params->Z; i++) {
+      ice_density[i] = data->ice_density[i][params->T - 1];
+    }
+    sprintf(fileName, "%s.dat", "pure_ice_density_profile");
+    saveTable(density, fileName, path, params->Z);
   }
 }
