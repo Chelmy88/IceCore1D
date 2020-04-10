@@ -28,8 +28,8 @@ typedef struct _model_values {
 enum SAVE_TYPE_ENUM { ST_MATRIX, ST_VECTOR, ST_UNSET };
 enum SCHEME_ENUM { SC_CN, SC_EXPL, SC_UNSET };
 enum THERMAL_ENUM { TH_CP, TH_GO, TH_UNSET };
-enum FIRN_ENUM { FI_SC, FI_CP, FI_UNSET };
-enum RHO_TYPE_ENUM { RHO_FIRN, RHO_CONST, RHO_UNSET };
+enum FIRN_ENUM { FI_SC, FI_CP, FI_CP_LIN, FI_UNSET };
+enum RHO_TYPE_ENUM { RHO_HL, RHO_CONST, RHO_UNSET };
 enum VERTICAL_PROFILE_ENUME { VP_FI, VP_PA, VP_UNSET };
 enum INTERNAL_ENERGY_ENUM { IE_ON, IE_OFF, IE_UNSET };
 enum MELTING_ENUM { ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET };
@@ -37,9 +37,9 @@ enum MELTING_ENUM { ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET };
 enum DATA_ENUM {
   SAVE_TYPE,
   SCHEME,
-  THERMAL,
-  FIRN,
-  RHO_TYPE,
+  THERMAL_ICE,
+  THERMAL_FIRN,
+  RHO_FIRN,
   VERTICAL_PROFILE,
   INTERNAL_ENERGY,
   MELTING,
@@ -48,34 +48,33 @@ enum DATA_ENUM {
 
 // Structure to store time series informations
 typedef struct _model_parameters {
-  int Z1; // 3400//height of the table
-  int T1; // 10001//10001 //width of the table
-  int S1; // 1500 //Length of the spin up in hYr
+  int Z; // 3400//height of the table
+  int T; // 10001//10001 //width of the table
+  int S; // 1500 //Length of the spin up in hYr
   enum SAVE_TYPE_ENUM
-      SAVE_TYPE1; //"VECTOR"//MATRIX or VECTOR to save age and temperature
-  enum SCHEME_ENUM SCHEME1; //"CN"//Scheme used, values can be CN or expl
-  int rhoSnow1; // 350 //Value of the snow density used in the computation of
+      SAVE_TYPE; //"VECTOR"//MATRIX or VECTOR to save age and temperature
+  enum SCHEME_ENUM SCHEME; //"CN"//Scheme used, values can be CN or expl
+  int RHO_SNOW; // 350 //Value of the snow density used in the computation of
                 // the density profile
   enum THERMAL_ENUM
-      THERMAL1; // "CP"//Model used for themal parameters, can be CP or GO
-  enum FIRN_ENUM FIRN1; // "SC" // Correction for the firn thermal conductivity,
-                        // can be CP,SC or FI
-  enum RHO_TYPE_ENUM RHO1; // "FIRN" // Set the density profile to realistic
-                           // (FIRN) or constant (CONST)
+      THERMAL_ICE; // "CP"//Model used for themal parameters, can be CP or GO
+  enum FIRN_ENUM THERMAL_FIRN; // "SC" // Correction for the firn thermal
+                               // conductivity, can be CP,SC or FI
+  enum RHO_TYPE_ENUM RHO_FIRN; // "FIRN" // Set the density profile to realistic
+                               // (FIRN) or constant (CONST)
   enum VERTICAL_PROFILE_ENUME
-      VERTICAL_PROFILE1; // "FI" // Set the flux shape function to FI or PA
-  enum INTERNAL_ENERGY_ENUM
-      INTERNAL_ENERGY1; // "OFF" //Decide wether internal energy should be
-                        // included or not
+      VERTICAL_PROFILE; // "FI" // Set the flux shape function to FI or PA
+  enum INTERNAL_ENERGY_ENUM INTERNAL_ENERGY; // "OFF" //Decide wether internal
+                                             // energy should be included or not
   enum MELTING_ENUM
-      MELTING1; // "FREE_MELT" //Basal malting-refeezing handeling :
-                // FREE_MELT->no basal refreezing, temperature decreases if
-                // there is no melt, FREEZING_NO_ICE -> some refreezing is
-                // possible, but the ice dissapear (i.e. bottom temp is always
-                // tmelt, no other difference), FREEZING -> some water is
-                // allowed to refreez, when melting comes back, first this ice
-                // is melted before real melting occures (refreezing and melting
-                // of frozen ice have no inflence on vertical velocity).
+      MELTING; // "FREE_MELT" //Basal malting-refeezing handeling :
+               // FREE_MELT->no basal refreezing, temperature decreases if
+               // there is no melt, FREEZING_NO_ICE -> some refreezing is
+               // possible, but the ice dissapear (i.e. bottom temp is always
+               // tmelt, no other difference), FREEZING -> some water is
+               // allowed to refreez, when melting comes back, first this ice
+               // is melted before real melting occures (refreezing and melting
+               // of frozen ice have no inflence on vertical velocity).
   char *TEMPERATURE_FILE;          //"output"//Directory to store data file into
   char *ACCUMULATION_FILE;         //"output"//Directory to store data file into
   char *ICE_THICKNESS_FILE;        //"output"//Directory to store data file into
@@ -133,14 +132,15 @@ bool initModelData(model_data *data, const model_parameters *const params,
 void deleteModelData(model_data *data, const model_parameters *const params);
 
 typedef struct _model_functions {
-  void (*setRho)(double *rho, double *rhoIce, double *temp, int thickness,
-                 double acc);
+  void (*setRho)(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
+                 int thickness, double acc);
   // Compute the density profile
 
   // Compute the values of the K and c thermal variables, called by spin_up()
   // and t_solve()
-  void (*setThermalIce)(double *K, double *tempersture, int thickness);
-  void (*setThermalFirn)(double *K, double *rho, double *rhoIce, int thickness);
+  void (*setThermalIce)(double *K, double *temperature, int thickness);
+  void (*setThermalFirn)(double *K, double *rho, double *rhoIce,
+                         double *temperature, int thickness);
   void (*setHeatCapacity)(double *cp, double *temperature, int thickness);
 
   void (*computeMelt)(double diff, double tmelt, double *m, double *tground,

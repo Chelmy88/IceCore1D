@@ -254,7 +254,7 @@ bool setParameter(model_parameters *const params, const char *const arg,
   if (strcmp(arg, "Z") == 0) {
     removeSpaces(val);
     if (atoi(val) > 0) {
-      params->Z1 = atoi(val);
+      params->Z = atoi(val);
     } else {
       printf("[E] Wrong parameter %s for Z. Must be positive integer.\n", val);
       return false;
@@ -264,7 +264,7 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "T") == 0) {
     removeSpaces(val);
     if (atoi(val) > 0) {
-      params->T1 = atoi(val);
+      params->T = atoi(val);
     } else {
       printf("[E] Wrong parameter %s for Z. Must be positive integer.\n", val);
       return false;
@@ -274,7 +274,7 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "S") == 0) {
     removeSpaces(val);
     if (atoi(val) > 0) {
-      params->S1 = atoi(val);
+      params->S = atoi(val);
     } else {
       printf("[E] Wrong parameter %s for Z. Must be positive integer\n", val);
       return false;
@@ -370,9 +370,9 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "SAVE_TYPE") == 0) {
     removeSpaces(val);
     if (strcmp(val, "MATRIX") == 0) {
-      params->SAVE_TYPE1 = ST_MATRIX;
+      params->SAVE_TYPE = ST_MATRIX;
     } else if (strcmp(val, "VECTOR") == -0) {
-      params->SAVE_TYPE1 = ST_VECTOR;
+      params->SAVE_TYPE = ST_VECTOR;
     } else {
       printf("[E] Unknown value %s for SAVE_TYPE\n", val);
       return false;
@@ -382,58 +382,60 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "SCHEME") == 0) {
     removeSpaces(val);
     if (strcmp(val, "CN") == 0) {
-      params->SCHEME1 = SC_CN;
+      params->SCHEME = SC_CN;
     } else if (strcmp(val, "EXPL") == 0) {
-      params->SCHEME1 = SC_EXPL;
+      params->SCHEME = SC_EXPL;
     } else {
       printf("[E] Unknown value %s for SAVE_TYPE\n", val);
       return false;
     }
   }
 
-  else if (strcmp(arg, "RHOSNOW") == 0) {
+  else if (strcmp(arg, "RHO_SNOW") == 0) {
     removeSpaces(val);
     if (atoi(val) > 0) {
-      params->rhoSnow1 = atoi(val);
+      params->RHO_SNOW = atoi(val);
     } else {
-      printf("[E] Wrong parameter %s for RHOSNOW. Must be positive integer\n",
+      printf("[E] Wrong parameter %s for RHO_SNOW. Must be positive integer\n",
              val);
       return false;
     }
   }
 
-  else if (strcmp(arg, "THERMAL") == 0) {
+  else if (strcmp(arg, "THERMAL_ICE") == 0) {
     removeSpaces(val);
     if (strcmp(val, "CP") == 0) {
-      params->THERMAL1 = TH_CP;
+      params->THERMAL_ICE = TH_CP;
     } else if (strcmp(val, "GO") == 0) {
-      params->THERMAL1 = TH_GO;
+      params->THERMAL_ICE = TH_GO;
     } else {
       printf("[E] Unknown value %s for THERMAL\n", val);
       return false;
     }
   }
 
-  else if (strcmp(arg, "FIRN") == 0) {
+  else if (strcmp(arg, "THERMAL_FIRN") == 0) {
     removeSpaces(val);
     if (strcmp(val, "SC") == 0) {
-      params->FIRN1 = FI_SC;
+      params->THERMAL_FIRN = FI_SC;
     } else if (strcmp(val, "CP") == 0) {
-      params->FIRN1 = FI_CP;
+      params->THERMAL_FIRN = FI_CP;
+    } else if (strcmp(val, "CP_LIN") == 0) {
+      params->THERMAL_FIRN = FI_CP_LIN;
     } else {
-      printf("[E] Unknown value %s for FIRN1\n", val);
+      printf("[E] Unknown value %s for THERMAL_FIRN\n", val);
       return false;
     }
   }
 
-  else if (strcmp(arg, "RHO") == 0) {
+  else if (strcmp(arg, "RHO_FIRN") == 0) {
     removeSpaces(val);
-    if (strcmp(val, "FIRN") == 0) {
-      params->RHO1 = RHO_FIRN;
+    if (strcmp(val, "HL") == 0) {
+      params->RHO_FIRN = RHO_HL;
     } else if (strcmp(val, "CONST") == 0) {
-      params->RHO1 = RHO_CONST;
+      params->RHO_FIRN = RHO_CONST;
     } else {
-      printf("[E] Unknown value %s for RHO\n", val);
+      printf("[E] Unknown value %s for RHO_FIRN\n", val);
       return false;
     }
   }
@@ -441,9 +443,9 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "VERTICAL_PROFILE") == 0) {
     removeSpaces(val);
     if (strcmp(val, "FI") == 0) {
-      params->VERTICAL_PROFILE1 = VP_FI;
+      params->VERTICAL_PROFILE = VP_FI;
     } else if (strcmp(val, "PA") == 0) {
-      params->VERTICAL_PROFILE1 = VP_PA;
+      params->VERTICAL_PROFILE = VP_PA;
     } else {
       printf("[E] Unknown value %s for VERTICAL1\n", val);
       return false;
@@ -453,9 +455,9 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "INTERNAL_ENERGY") == 0) {
     removeSpaces(val);
     if (strcmp(val, "ON") == 0) {
-      params->INTERNAL_ENERGY1 = IE_ON;
+      params->INTERNAL_ENERGY = IE_ON;
     } else if (strcmp(val, "OFF") == 0) {
-      params->INTERNAL_ENERGY1 = IE_OFF;
+      params->INTERNAL_ENERGY = IE_OFF;
     } else {
       printf("[E] Unknown value %s for INTERNAL_ENERGY\n", val);
       return false;
@@ -463,11 +465,11 @@ bool setParameter(model_parameters *const params, const char *const arg,
   } else if (strcmp(arg, "MELTING") == 0) {
     removeSpaces(val);
     if (strcmp(val, "FREE_MELT") == 0) {
-      params->MELTING1 = ME_FREE_MELT;
+      params->MELTING = ME_FREE_MELT;
     } else if (strcmp(val, "FREEZING_NO_ICE") == 0) {
-      params->MELTING1 = ME_FREEZING_NO_ICE;
+      params->MELTING = ME_FREEZING_NO_ICE;
     } else if (strcmp(val, "FREEZING") == 0) {
-      params->MELTING1 = ME_FREEZING;
+      params->MELTING = ME_FREEZING;
     } else {
       printf("[E] Unknown value %s for MELTING\n", val);
       return false;
@@ -744,21 +746,21 @@ bool setParameter(model_parameters *const params, const char *const arg,
 bool checkParameter(model_parameters *const params) {
 
   bool state = true;
-  if (params->Z1 == -1) {
+  if (params->Z == -1) {
     printf("[E] Unset parameter Z. This parameter is mandatory\n");
     state = false;
   }
-  if (params->T1 == -1) {
+  if (params->T == -1) {
     printf("[E] Unset parameter T. This parameter is mandatory\n");
     state = false;
   }
-  if (params->S1 == -1) {
-    params->S1 = 1500;
+  if (params->S == -1) {
+    params->S = 1500;
     printf("[W] Unset parameter S, the default value of 1500 is used\n");
   }
-  if (params->rhoSnow1 == -1) {
-    params->rhoSnow1 = 350;
-    printf("[W] Unset parameter RHOSNOW, the default value of 350 is used\n");
+  if (params->RHO_SNOW == -1) {
+    params->RHO_SNOW = 350;
+    printf("[W] Unset parameter RHO_SNOW, the default value of 350 is used\n");
   }
   if (!params->OUTPUT_PATH) {
     printf("[E] Unset parameter OUTPUT_PATH. This parameter is mandatory\n");
@@ -788,39 +790,39 @@ bool checkParameter(model_parameters *const params) {
            "mandatory\n");
     state = false;
   }
-  if (params->SAVE_TYPE1 == ST_UNSET) {
-    params->SAVE_TYPE1 = ST_VECTOR;
+  if (params->SAVE_TYPE == ST_UNSET) {
+    params->SAVE_TYPE = ST_VECTOR;
     printf(
         "[W] Unset parameter SAVE_TYPE, the default value of VECTOR is used\n");
   }
-  if (params->SCHEME1 == SC_UNSET) {
-    params->SCHEME1 = SC_CN;
+  if (params->SCHEME == SC_UNSET) {
+    params->SCHEME = SC_CN;
     printf("[W] Unset parameter SCHEME, the default value of CN is used\n");
   }
-  if (params->THERMAL1 == TH_UNSET) {
-    params->THERMAL1 = TH_CP;
+  if (params->THERMAL_ICE == TH_UNSET) {
+    params->THERMAL_ICE = TH_CP;
     printf("[W] Unset parameter THERMAL, the default value of CP is used\n");
   }
-  if (params->FIRN1 == FI_UNSET) {
-    params->FIRN1 = FI_SC;
+  if (params->THERMAL_FIRN == FI_UNSET) {
+    params->THERMAL_FIRN = FI_SC;
     printf("[W] Unset parameter FIRN, the default value of SC is used\n");
   }
-  if (params->RHO1 == RHO_UNSET) {
-    params->RHO1 = RHO_FIRN;
-    printf("[W] Unset parameter RHO, the default value of FIRN is used\n");
+  if (params->RHO_FIRN == RHO_UNSET) {
+    params->RHO_FIRN = RHO_FIRN;
+    printf("[W] Unset parameter RHO_FIRN, the default value of FIRN is used\n");
   }
-  if (params->VERTICAL_PROFILE1 == VP_UNSET) {
-    params->VERTICAL_PROFILE1 = VP_FI;
+  if (params->VERTICAL_PROFILE == VP_UNSET) {
+    params->VERTICAL_PROFILE = VP_FI;
     printf("[W] Unset parameter VERTICAL_PROFILE, the default value of FI is "
            "used\n");
   }
-  if (params->INTERNAL_ENERGY1 == IE_UNSET) {
-    params->INTERNAL_ENERGY1 = IE_OFF;
+  if (params->INTERNAL_ENERGY == IE_UNSET) {
+    params->INTERNAL_ENERGY = IE_OFF;
     printf("[W] Unset parameter INTERNAL_ENERGY, the default value of OFF is "
            "used\n");
   }
-  if (params->MELTING1 == ME_UNSET) {
-    params->MELTING1 = ME_FREE_MELT;
+  if (params->MELTING == ME_UNSET) {
+    params->MELTING = ME_FREE_MELT;
     printf("[W] Unset parameter MELTING, the default value of FREE_MELT is "
            "used\n");
   }

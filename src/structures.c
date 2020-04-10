@@ -3,7 +3,7 @@
 #include "physicalFunctions.h"
 
 bool initTimeSeries(time_series *ts, model_parameters *params) {
-  ts->surfaceTempLoad = calloc(params->T1, sizeof(real));
+  ts->surfaceTempLoad = calloc(params->T, sizeof(real));
   if (!ts->surfaceTempLoad) {
     return false;
   }
@@ -11,7 +11,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params) {
     return false;
   }
 
-  ts->iceThicknessLoad = calloc(params->T1, sizeof(real));
+  ts->iceThicknessLoad = calloc(params->T, sizeof(real));
   if (!ts->iceThicknessLoad) {
     return false;
   }
@@ -19,7 +19,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params) {
     return false;
   }
 
-  ts->accLoad = calloc(params->T1, sizeof(real));
+  ts->accLoad = calloc(params->T, sizeof(real));
   if (!ts->accLoad) {
     return false;
   }
@@ -27,7 +27,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params) {
     return false;
   }
 
-  ts->age = calloc(params->Z1, sizeof(real));
+  ts->age = calloc(params->Z, sizeof(real));
   if (!ts->age) {
     return false;
   }
@@ -35,7 +35,7 @@ bool initTimeSeries(time_series *ts, model_parameters *params) {
     return false;
   }
 
-  ts->borehole_temp = calloc(params->Z1, sizeof(real));
+  ts->borehole_temp = calloc(params->Z, sizeof(real));
   if (!ts->borehole_temp) {
     return false;
   }
@@ -70,14 +70,15 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[SCHEME][SC_CN] = "CN";
   params->strings[SCHEME][SC_EXPL] = "EXPL";
 
-  params->strings[THERMAL][TH_CP] = "CP";
-  params->strings[THERMAL][TH_GO] = "GO";
+  params->strings[THERMAL_ICE][TH_CP] = "CP";
+  params->strings[THERMAL_ICE][TH_GO] = "GO";
 
-  params->strings[FIRN][FI_SC] = "SC";
-  params->strings[FIRN][FI_CP] = "CP";
+  params->strings[THERMAL_FIRN][FI_SC] = "SC";
+  params->strings[THERMAL_FIRN][FI_CP] = "CP";
+  params->strings[THERMAL_FIRN][FI_CP_LIN] = "CP_LIN";
 
-  params->strings[RHO_TYPE][RHO_FIRN] = "FIRN";
-  params->strings[RHO_TYPE][RHO_CONST] = "CONST";
+  params->strings[RHO_FIRN][RHO_FIRN] = "HL";
+  params->strings[RHO_FIRN][RHO_CONST] = "CONST";
 
   params->strings[VERTICAL_PROFILE][VP_FI] = "FI";
   params->strings[VERTICAL_PROFILE][VP_PA] = "PA";
@@ -89,18 +90,18 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[MELTING][SC_EXPL] = "FREEZING_NO_ICE";
   params->strings[MELTING][SC_EXPL] = "FREEZING";
 
-  params->Z1 = -1;
-  params->T1 = -1;
-  params->S1 = -1;
-  params->SAVE_TYPE1 = ST_UNSET;
-  params->SCHEME1 = SC_UNSET;
-  params->rhoSnow1 = -1;
-  params->THERMAL1 = TH_UNSET;
-  params->FIRN1 = FI_UNSET;
-  params->RHO1 = RHO_UNSET;
-  params->VERTICAL_PROFILE1 = VP_UNSET;
-  params->INTERNAL_ENERGY1 = IE_UNSET;
-  params->MELTING1 = ME_UNSET;
+  params->Z = -1;
+  params->T = -1;
+  params->S = -1;
+  params->SAVE_TYPE = ST_UNSET;
+  params->SCHEME = SC_UNSET;
+  params->RHO_SNOW = -1;
+  params->THERMAL_ICE = TH_UNSET;
+  params->THERMAL_FIRN = FI_UNSET;
+  params->RHO_FIRN = RHO_UNSET;
+  params->VERTICAL_PROFILE = VP_UNSET;
+  params->INTERNAL_ENERGY = IE_UNSET;
+  params->MELTING = ME_UNSET;
   params->OUTPUT_PATH = NULL;
   params->values.mw = NULL;
   params->values.mw_n = 0;
@@ -125,9 +126,9 @@ bool initModelParameters(model_parameters *params, char *fileName) {
 
 void printModelParameters(model_parameters *params) {
   printf("\t--Model Parameters--\n");
-  printf("\tZ\t\t:\t%d\n", params->Z1);
-  printf("\tT\t\t:\t%d\n", params->T1);
-  printf("\tS\t\t:\t%d\n", params->S1);
+  printf("\tZ\t\t:\t%d\n", params->Z);
+  printf("\tT\t\t:\t%d\n", params->T);
+  printf("\tS\t\t:\t%d\n", params->S);
   printf("\tTEMPERATURE_FILE\t:\t%s\n", params->TEMPERATURE_FILE);
   printf("\tACCUMULATION_FILE\t:\t%s\n", params->ACCUMULATION_FILE);
   printf("\tICE_THICKNESS_FILE\t:\t%s\n", params->ICE_THICKNESS_FILE);
@@ -135,18 +136,19 @@ void printModelParameters(model_parameters *params) {
   printf("\tBOREHOLE_TEMPERATURE_FILE\t:\t%s\n",
          params->BOREHOLE_TEMPERATURE_FILE);
   printf("\tOUTPUT_PATH\t:\t%s\n", params->OUTPUT_PATH);
-  printf("\tSAVE_TYPE\t:\t%s\n",
-         params->strings[SAVE_TYPE][params->SAVE_TYPE1]);
-  printf("\tSCHEME\t\t:\t%s\n", params->strings[SCHEME][params->SCHEME1]);
-  printf("\tRHOSNOW\t\t:\t%d\n", params->rhoSnow1);
-  printf("\tTHERMAL\t\t:\t%s\n", params->strings[THERMAL][params->THERMAL1]);
-  printf("\tFIRN\t\t:\t%s\n", params->strings[FIRN][params->FIRN1]);
-  printf("\tRHO\t\t:\t%s\n", params->strings[RHO_TYPE][params->RHO1]);
+  printf("\tSAVE_TYPE\t:\t%s\n", params->strings[SAVE_TYPE][params->SAVE_TYPE]);
+  printf("\tSCHEME\t\t:\t%s\n", params->strings[SCHEME][params->SCHEME]);
+  printf("\tRHOSNOW\t\t:\t%d\n", params->RHO_SNOW);
+  printf("\tTHERMAL\t\t:\t%s\n",
+         params->strings[THERMAL_ICE][params->THERMAL_ICE]);
+  printf("\tFIRN\t\t:\t%s\n",
+         params->strings[THERMAL_FIRN][params->THERMAL_FIRN]);
+  printf("\tRHO\t\t:\t%s\n", params->strings[RHO_FIRN][params->RHO_FIRN]);
   printf("\tVERTICAL_PROFILE:\t%s\n",
-         params->strings[VERTICAL_PROFILE][params->VERTICAL_PROFILE1]);
+         params->strings[VERTICAL_PROFILE][params->VERTICAL_PROFILE]);
   printf("\tINTERNAL_ENERGY\t:\t%s\n",
-         params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY1]);
-  printf("\tMELTING\t\t:\t%s\n", params->strings[MELTING][params->MELTING1]);
+         params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY]);
+  printf("\tMELTING\t\t:\t%s\n", params->strings[MELTING][params->MELTING]);
   printf("\tMW\t\t:\t%.2f", params->values.mw[0]);
   for (size_t i = 1; i < params->values.mw_n; ++i) {
     printf(" %.2f", params->values.mw[i]);
@@ -206,59 +208,59 @@ void deleteModelParameters(model_parameters *params) {
 bool initModelData(model_data *data, const model_parameters *const params,
                    size_t mwL, size_t QGL, size_t TcorL, size_t TcorL2,
                    size_t PcorL, size_t deltaHL, size_t lenL, size_t flatL) {
-  data->temperature = calloc(params->Z1, sizeof(real *));
+  data->temperature = calloc(params->Z, sizeof(real *));
   if (!data->temperature) {
     return false;
   }
-  for (int li = 0; li < params->Z1; li++) {
-    data->temperature[li] = calloc(params->T1, sizeof(real));
+  for (int li = 0; li < params->Z; li++) {
+    data->temperature[li] = calloc(params->T, sizeof(real));
     if (!data->temperature[li]) {
       return false;
     }
   }
 
-  data->density = calloc(params->Z1, sizeof(real *));
+  data->density = calloc(params->Z, sizeof(real *));
   if (!data->density) {
     return false;
   }
-  for (int li = 0; li < params->Z1; li++) {
-    data->density[li] = calloc(params->T1, sizeof(real));
+  for (int li = 0; li < params->Z; li++) {
+    data->density[li] = calloc(params->T, sizeof(real));
     if (!data->density[li]) {
       return false;
     }
   }
 
-  data->surfaceTemp = calloc(params->T1, sizeof(real *));
+  data->surfaceTemp = calloc(params->T, sizeof(real *));
   if (!data->surfaceTemp) {
     return false;
   }
 
-  data->iceThickness = calloc(params->T1, sizeof(real *));
+  data->iceThickness = calloc(params->T, sizeof(real *));
   if (!data->iceThickness) {
     return false;
   }
 
-  data->acc = calloc(params->T1, sizeof(real *));
+  data->acc = calloc(params->T, sizeof(real *));
   if (!data->acc) {
     return false;
   }
 
-  data->acc2 = calloc(params->T1, sizeof(real *));
+  data->acc2 = calloc(params->T, sizeof(real *));
   if (!data->acc2) {
     return false;
   }
 
-  data->melt = calloc(params->T1, sizeof(real *));
+  data->melt = calloc(params->T, sizeof(real *));
   if (!data->melt) {
     return false;
   }
 
-  data->freeze = calloc(params->T1, sizeof(real *));
+  data->freeze = calloc(params->T, sizeof(real *));
   if (!data->freeze) {
     return false;
   }
 
-  data->tnew = calloc(params->Z1, sizeof(real *));
+  data->tnew = calloc(params->Z, sizeof(real *));
   if (!data->tnew) {
     return false;
   }
@@ -276,11 +278,11 @@ bool initModelData(model_data *data, const model_parameters *const params,
 }
 
 void deleteModelData(model_data *data, const model_parameters *const params) {
-  for (int li = 0; li < params->Z1; li++) {
+  for (int li = 0; li < params->Z; li++) {
     double *currentIntPtr = data->temperature[li];
     free(currentIntPtr);
   }
-  for (int li = 0; li < params->Z1; li++) {
+  for (int li = 0; li < params->Z; li++) {
     double *currentIntPtr = data->density[li];
     free(currentIntPtr);
   }
@@ -298,58 +300,58 @@ void deleteModelData(model_data *data, const model_parameters *const params) {
 bool initModelFunctions(model_functions *functions,
                         const model_parameters *const params) {
 
-  if (params->RHO1 == RHO_FIRN) {
-    functions->setRho = &setRho_FIRN;
-  } else if (params->RHO1 == RHO_CONST) {
+  if (params->RHO_FIRN == RHO_HL) {
+    functions->setRho = &setRho_HL;
+  } else if (params->RHO_FIRN == RHO_CONST) {
     functions->setRho = &setRho_CONST;
   } else {
     functions->setRho = NULL;
     return false;
   }
 
-  if (params->THERMAL1 == TH_CP) {
+  if (params->THERMAL_ICE == TH_CP) {
     functions->setThermalIce = &setThermalIce_CP;
-  } else if (params->THERMAL1 == TH_GO) {
+  } else if (params->THERMAL_ICE == TH_GO) {
     functions->setThermalIce = &setThermalIce_GO;
   } else {
     functions->setThermalIce = NULL;
     return false;
   }
 
-  if (params->FIRN1 == FI_CP) {
+  if (params->THERMAL_FIRN == FI_CP) {
     functions->setThermalFirn = &setThermalFirn_CP;
-  } else if (params->FIRN1 == FI_SC) {
+  } else if (params->THERMAL_FIRN == FI_SC) {
     functions->setThermalFirn = &setThermalFirn_SC;
+  } else if (params->THERMAL_FIRN == FI_CP_LIN) {
+    functions->setThermalFirn = &setThermalFirn_CP_LIN;
   } else {
     functions->setThermalFirn = NULL;
     return false;
   }
 
-  functions->setHeatCapacity = &setHeatCapacity;
-
-  if (params->MELTING1 == ME_FREE_MELT) {
+  if (params->MELTING == ME_FREE_MELT) {
     functions->computeMelt = &computeMelt_FREE_MELT;
-  } else if (params->MELTING1 == ME_FREEZING_NO_ICE) {
+  } else if (params->MELTING == ME_FREEZING_NO_ICE) {
     functions->computeMelt = &computeMelt_FREEZING_NO_ICE;
-  } else if (params->MELTING1 == ME_FREEZING) {
+  } else if (params->MELTING == ME_FREEZING) {
     functions->computeMelt = &computeMelt_FREEZING;
   } else {
     functions->computeMelt = NULL;
     return false;
   }
 
-  if (params->VERTICAL_PROFILE1 == VP_FI) {
+  if (params->VERTICAL_PROFILE == VP_FI) {
     functions->wDef = &wDef_FI;
-  } else if (params->VERTICAL_PROFILE1 == VP_PA) {
+  } else if (params->VERTICAL_PROFILE == VP_PA) {
     functions->wDef = &wDef_PA;
   } else {
     functions->computeMelt = NULL;
     return false;
   }
 
-  if (params->INTERNAL_ENERGY1 == IE_ON) {
+  if (params->INTERNAL_ENERGY == IE_ON) {
     functions->setSe = &setSe_ON;
-  } else if (params->INTERNAL_ENERGY1 == IE_OFF) {
+  } else if (params->INTERNAL_ENERGY == IE_OFF) {
     functions->setSe = &setSe_OFF;
   } else {
     functions->computeMelt = NULL;

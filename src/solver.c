@@ -8,21 +8,19 @@
 // =333500 --> Latent heat of ice in J/kg double rho[Z] --> Table used to store
 // the computed density profile double rhoIce[Z] --> Table used to compute the
 // pure ice density profile (for actual temperature and pressure) double
-// a[Z],b[Z] --> double a2[Z],b2[Z] --> double m --> Melt rate double tground -->
-// Ground temperature double K[Z]  --> Ice thermal conductivity double cp[Z] -->
-// Ice specific heat capacity double w[Z] --> Table used to store the velocity
-// profile double w_def[Z] --> Table used to store the flux shape function values
-// double delt=31556926.*100 --> Time step (100kyr)
-// double delz=1 -->  Height Step
-// double tmelt --> Melt temperature computed with the bottom pressure
-// double dhdt  --> Thickness time derivative
-// double se[Z]  --> Internal heat (valley effect + internal heat production)
-// power density
+// a[Z],b[Z] --> double a2[Z],b2[Z] --> double m --> Melt rate double tground
+// --> Ground temperature double K[Z]  --> Ice thermal conductivity double cp[Z]
+// --> Ice specific heat capacity double w[Z] --> Table used to store the
+// velocity profile double w_def[Z] --> Table used to store the flux shape
+// function values double delt=31556926.*100 --> Time step (100kyr) double
+// delz=1 -->  Height Step double tmelt --> Melt temperature computed with the
+// bottom pressure double dhdt  --> Thickness time derivative double se[Z]  -->
+// Internal heat (valley effect + internal heat production) power density
 
 // double rhoIceConst=917  -->  Pure ice density for a first approximation of
 // the density profile double rhoSnowConst  --> Snow density (value defined in
-// header) double R=8.3144  --> Gaz constant double k0  --> Value computed in the
-// H-L density model double k1  --> Value computed in the H-L density model
+// header) double R=8.3144  --> Gaz constant double k0  --> Value computed in
+// the H-L density model double k1  --> Value computed in the H-L density model
 // double z55  --> Value computed in the H-L density model
 // double z0[Z]  --> Values computed in the H-L density model
 
@@ -43,7 +41,7 @@ void spin_up(const model_functions *const functions,
              double *density) {
   // Perform a spin up for the time indicated in header (time in hyr). The spin
   // up is done with a 2-passes implicit scheme.
-  int Z = params->Z1;
+  int Z = params->Z;
   double begin3 = omp_get_wtime();
   int thickness = (int)thick;
   int i, li = 0;
@@ -61,10 +59,10 @@ void spin_up(const model_functions *const functions,
   for (li = 0; li <= thickness; li++) {
     w_def[li] = functions->wDef((double)li, (double)thickness, mw);
   }
-  for (i = 0; i < params->S1; i++) {
+  for (i = 0; i < params->S; i++) {
     double tint[Z], rho_first[Z], se_first[Z];
 
-    functions->setRho(rho, rhoIce, told, thickness, acc);
+    functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
     computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
@@ -79,7 +77,7 @@ void spin_up(const model_functions *const functions,
       se_first[li] = se[li];
     }
     // Second pass
-    functions->setRho(rho, rhoIce, tint, thickness, acc);
+    functions->setRho(params->RHO_SNOW, rho, rhoIce, tint, thickness, acc);
     setHeatVar(functions, K, cp, tint, thickness, rho, rhoIce);
     computeMelt(functions, &m, &tground, rho_first, L, K[1], cp[0], tint[1],
                 tint[0], thick, delz, QG, &f);
@@ -110,7 +108,7 @@ void t_solve(const model_functions *const functions,
              double deltaH, int border, double len, double flat, double *freeze,
              double *density) {
 
-  int Z = params->Z1;
+  int Z = params->Z;
   int thickness = (int)thick;
   double told[Z];
   memset(told, 0, Z * sizeof(real));
@@ -118,7 +116,7 @@ void t_solve(const model_functions *const functions,
   double L = 333500;
   double rho[Z], rhoIce[Z];
   memset(rho, 921, Z * sizeof(real));
-  memset(rhoIce, 921, Z * sizeof(real));
+  memset(rhoIce, 0, Z * sizeof(real));
   double a[Z], b[Z], a2[Z], b2[Z];
   double m, f, tground = 0;
   double K[Z], cp[Z], w[Z], w_def[Z];
@@ -135,13 +133,13 @@ void t_solve(const model_functions *const functions,
   }
   double tsurf_old = told[thickness];
 
-  if (params->SCHEME1 == SC_CN) // C-N scheme
+  if (params->SCHEME == SC_CN) // C-N scheme
   {
     double rep = 1; // Define the number of passes-1 in the C-N scheme
     double tint[Z], rho_first[Z], rho_mean[Z], se_first[Z];
     double cp0, K1 = 0;
 
-    functions->setRho(rho, rhoIce, told, thickness, acc);
+    functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
     computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
@@ -161,7 +159,7 @@ void t_solve(const model_functions *const functions,
     freeze[time] = f;
 
     for (i = 0; i < (int)rep; i++) {
-      functions->setRho(rho, rhoIce, tint, thickness, acc);
+      functions->setRho(params->RHO_SNOW, rho, rhoIce, tint, thickness, acc);
       setHeatVar(functions, K, cp, tint, thickness, rho, rhoIce);
       for (li = 0; li <= thickness; li++) {
         rho_mean[li] = (rho[li] + rho_first[li]) / 2;
@@ -187,9 +185,9 @@ void t_solve(const model_functions *const functions,
     melt[time] /= 2;
     freeze[time] += f;
     freeze[time] /= 2;
-  } else if (params->SCHEME1 == SC_EXPL) // Explicit scheme
+  } else if (params->SCHEME == SC_EXPL) // Explicit scheme
   {
-    functions->setRho(rho, rhoIce, told, thickness, acc);
+    functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
     computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);

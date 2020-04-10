@@ -5,37 +5,37 @@ void runModel(model_data *data, const model_parameters *const params,
               const time_series *const ts,
               const model_functions *const functions) {
   size_t li = 0;
-  size_t Z1 = params->Z1;
-  size_t T1 = params->T1;
+  size_t Z = params->Z;
+  size_t T = params->T;
 
   real *spin_up_temp, *spin_up_temp2, *temperatureBorder, *dens;
 
-  spin_up_temp = calloc(params->Z1, sizeof(real));
-  spin_up_temp2 = calloc(params->Z1, sizeof(real));
-  temperatureBorder = calloc(params->Z1, sizeof(real));
-  dens = calloc(params->Z1, sizeof(real));
+  spin_up_temp = calloc(params->Z, sizeof(real));
+  spin_up_temp2 = calloc(params->Z, sizeof(real));
+  temperatureBorder = calloc(params->Z, sizeof(real));
+  dens = calloc(params->Z, sizeof(real));
 
   // SET BC VALUES //
   // Loop over the time steps to implement the correction on the time series
-  for (li = 0; li < T1; li++) {
+  for (li = 0; li < T; li++) {
     data->surfaceTemp[li] = ts->surfaceTempLoad[li];
     data->iceThickness[li] = ts->iceThicknessLoad[li];
     data->acc[li] = ts->accLoad[li] * 3600 * 24 * 365 / 31556926;
     // surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
   }
 
-  real t0 = data->surfaceTemp[T1 - 1];
-  real tLGM = data->surfaceTemp[T1 - 257];
+  real t0 = data->surfaceTemp[T - 1];
+  real tLGM = data->surfaceTemp[T - 257];
 
-  for (li = 0; li < T1; li++) {
+  for (li = 0; li < T; li++) {
     data->surfaceTemp[li] =
         (data->surfaceTemp[li] - t0) * (tLGM - t0 + data->tCor2) / (tLGM - t0) +
         t0;
-    if (T1 == 40001) {
+    if (T == 40001) {
       if (li > 39980 && li < 40001) {
         data->surfaceTemp[li] = data->surfaceTemp[li] - data->tCor;
       }
-    } else if (T1 == 10001) {
+    } else if (T == 10001) {
       if (li > 9980 && li < 10001) {
         data->surfaceTemp[li] = data->surfaceTemp[li] - data->tCor;
       }
@@ -86,7 +86,7 @@ void runModel(model_data *data, const model_parameters *const params,
             data->melt, dens);
   }
 
-  for (li = 0; li < Z1; li++) {
+  for (li = 0; li < Z; li++) {
     data->temperature[li][0] = spin_up_temp[li];
     data->density[li][0] = dens[li];
     data->tnew[li] = spin_up_temp[li];
@@ -97,9 +97,9 @@ void runModel(model_data *data, const model_parameters *const params,
   // Loop over all the time steps
   size_t time = 1;
   real time_for_loop = 0;
-  for (time = 1; time < T1; time++) {
+  for (time = 1; time < T; time++) {
     real begin2 = omp_get_wtime();
-    for (li = 0; li < Z1; li++) {
+    for (li = 0; li < Z; li++) {
       data->tnew[li] = 0;
       dens[li] = 0;
     }
@@ -143,5 +143,5 @@ void runModel(model_data *data, const model_parameters *const params,
   // melt[0]=melt[1];
   // Print the time for the run and the individual loop mean time
   printf("\nIntegration ok in: %f secondes  ", time_for_loop);
-  printf("Mean run time: %f miliseconds\n", time_for_loop / (T1 - 1.) * 1000.);
+  printf("Mean run time: %f miliseconds\n", time_for_loop / (T - 1.) * 1000.);
 }

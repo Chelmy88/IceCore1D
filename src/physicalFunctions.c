@@ -4,10 +4,9 @@
 
 //*************Computational functions*************
 
-void setRho_FIRN(double *rho, double *rhoIce, double *temp, int thickness,
-                 double acc) {
+void setRho_HL(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
+               int thickness, double acc) {
   const double rhoIceConst = 917;
-  const double rhoSnowConst = 350;
   const double R = 8.3144;
   const double g = 9.81;
 
@@ -63,8 +62,9 @@ void setRho_FIRN(double *rho, double *rhoIce, double *temp, int thickness,
   }
 }
 
-void setRho_CONST(double *rho, double *rhoIce, double *temp, int thickness,
-                  double acc) {
+void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
+                  double *temp, int thickness, double acc) {
+  UNUSED(rhoSnowConst);
   UNUSED(rhoIce);
   UNUSED(temp);
   UNUSED(acc);
@@ -78,7 +78,7 @@ void setHeatVar(const model_functions *const functions, double *K, double *cp,
                 double *rhoIce) {
   functions->setThermalIce(K, temperature, thickness);
 
-  functions->setThermalFirn(K, rho, rhoIce, thickness);
+  functions->setThermalFirn(K, rho, rhoIce, temperature, thickness);
 
   functions->setHeatCapacity(cp, temperature, thickness);
 }
@@ -95,16 +95,46 @@ void setThermalIce_GO(double *K, double *temperature, int thickness) {
   }
 }
 
-void setThermalFirn_CP(double *K, double *rho, double *rhoIce, int thickness) {
+/**
+ * @name THERMAL CONDUCTIVITY OF ICE
+ * @brief Based on master thesis of Tobias Hipp, who used relationships by Ling
+ * & Yhang (2005).
+ * @version 11.03
+ * @param Temperature Temperature (K)
+ * @return Thermal conductivity of ice
+ */
+// double conductivity_ice(const double &Temperature) {
+//   const double ki = 0.4685 + 488.19 / Temperature;
+//   return ki;
+// }
+
+void setThermalFirn_CP(double *K, double *rho, double *rhoIce,
+                       double *temperature, int thickness) {
+  UNUSED(temperature);
   for (int li = 0; li <= thickness; li++) {
     K[li] = 2. * K[li] * rho[li] / (3 * rhoIce[li] - rho[li]);
   }
 }
 
-void setThermalFirn_SC(double *K, double *rho, double *rhoIce, int thickness) {
+void setThermalFirn_SC(double *K, double *rho, double *rhoIce,
+                       double *temperature, int thickness) {
+  UNUSED(temperature);
   for (int li = 0; li <= thickness; li++) {
     K[li] = K[li] * pow((rho[li] / rhoIce[li]), 2 - 0.5 * rho[li] / rhoIce[li]);
   }
+}
+
+void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce,
+                           double *temperature, int thickness) {
+  real cp = 152.5 + 7.122 * temperature[thickness];
+  setThermalFirn_CP(K, rho, rhoIce, temperature, thickness);
+  real k0 = 25 * rho[thickness] * cp / (365.25 * 24 * 3600);
+  real k100 = K[thickness - 100];
+  for (int li = thickness; li >= thickness - 100; --li) {
+    K[li] = k0 + (thickness - li) / 100. * (k100 - k0);
+  }
+  // printf("%f %f %f\n", k0, K[thickness],
+  //       K[thickness] / (rho[thickness] * cp) * (365.25 * 24 * 3600));
 }
 
 void setHeatCapacity(double *cp, double *temperature, int thickness) {

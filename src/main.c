@@ -123,20 +123,20 @@ bool mainLoop(model_parameters *params, time_series *ts,
                   size_t ageVerRes = 0;
                   size_t ageHorRes = 0;
                   size_t ageCor = 0;
-                  if (params->SAVE_TYPE1 == ST_MATRIX) {
-                    if (params->T1 == 10001) {
-                      ageVerRes = (size_t)(params->Z1 / 5);
-                      ageHorRes = (size_t)(params->T1 / 10);
+                  if (params->SAVE_TYPE == ST_MATRIX) {
+                    if (params->T == 10001) {
+                      ageVerRes = (size_t)(params->Z / 5);
+                      ageHorRes = (size_t)(params->T / 10);
                       ageCor = 0;
-                    } else if (params->T1 == 40001) {
-                      ageVerRes = (size_t)(params->Z1 / 5);
-                      ageHorRes = (size_t)(params->T1 / 20);
+                    } else if (params->T == 40001) {
+                      ageVerRes = (size_t)(params->Z / 5);
+                      ageHorRes = (size_t)(params->T / 20);
                       ageCor = 20000;
                     }
-                  } else if (params->SAVE_TYPE1 == ST_VECTOR) {
-                    ageVerRes = (size_t)(params->Z1 / 5);
+                  } else if (params->SAVE_TYPE == ST_VECTOR) {
+                    ageVerRes = (size_t)(params->Z / 5);
                     ageHorRes = 1;
-                    ageCor = params->T1 - 11;
+                    ageCor = params->T - 11;
                   }
 
                   double **age = computeAge(&data, functions, ageVerRes,
@@ -227,10 +227,10 @@ void saveData(const model_data *const data,
           ".0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
           params->OUTPUT_PATH, data->mw, data->QG * 1000, data->pCor,
           data->tCor, data->tCor2, data->deltaH, data->len, data->flat, "EDC",
-          params->strings[THERMAL][params->THERMAL1],
-          params->strings[FIRN][params->FIRN1],
-          params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY1],
-          params->strings[SCHEME][params->SCHEME1]);
+          params->strings[THERMAL][params->THERMAL_ICE],
+          params->strings[FIRN][params->THERMAL_FIRN],
+          params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
+          params->strings[SCHEME][params->SCHEME]);
   //
   // Check if the man export directory and the subdirectory are already existing
   // and create them if missing
@@ -244,31 +244,31 @@ void saveData(const model_data *const data,
 
   // Save the temperature profile, the melt rate and the age scale
   sprintf(fileName, "%s.dat", "melt_rate");
-  saveTable(data->melt, fileName, path, params->T1);
+  saveTable(data->melt, fileName, path, params->T);
   sprintf(fileName, "%s.dat", "frozen_ice");
-  saveTable(data->freeze, fileName, path, params->T1);
-  if (params->SAVE_TYPE1 == ST_MATRIX) {
+  saveTable(data->freeze, fileName, path, params->T);
+  if (params->SAVE_TYPE == ST_MATRIX) {
     sprintf(fileName, "%s.dat", "age_matrix");
     save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
     sprintf(fileName, "%s.dat", "temp_matrix");
-    if (params->T1 == 10001) {
-      save2DTable(data->temperature, fileName, path, params->Z1, params->T1, 1,
+    if (params->T == 10001) {
+      save2DTable(data->temperature, fileName, path, params->Z, params->T, 1,
                   10, 0);
-    } else if (params->T1 == 40001) {
-      save2DTable(data->temperature, fileName, path, params->Z1, params->T1, 1,
+    } else if (params->T == 40001) {
+      save2DTable(data->temperature, fileName, path, params->Z, params->T, 1,
                   10, 20000);
     }
-  } else if (params->SAVE_TYPE1 == ST_VECTOR) {
+  } else if (params->SAVE_TYPE == ST_VECTOR) {
     sprintf(fileName, "%s.dat", "age_profile");
     save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
     sprintf(fileName, "%s.dat", "temp_profile");
-    saveTable(data->tnew, fileName, path, params->Z1);
-    real density[params->Z1];
-    memset(density, 0, params->Z1 * sizeof(real));
-    for (int i = 0; i < params->Z1; i++) {
-      density[i] = data->density[i][params->T1 - 1];
+    saveTable(data->tnew, fileName, path, params->Z);
+    real density[params->Z];
+    memset(density, 0, params->Z * sizeof(real));
+    for (int i = 0; i < params->Z; i++) {
+      density[i] = data->density[i][params->T - 1];
     }
     sprintf(fileName, "%s.dat", "density_profile");
-    saveTable(density, fileName, path, params->Z1);
+    saveTable(density, fileName, path, params->Z);
   }
 }

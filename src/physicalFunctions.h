@@ -35,10 +35,10 @@
 //*************Computational functions*************
 
 // Compute the density profile
-void setRho_FIRN(double *rho, double *rhoIce, double *temp, int thickness,
-                 double acc);
-void setRho_CONST(double *rho, double *rhoIce, double *temp, int thickness,
-                  double acc);
+void setRho_HL(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
+               int thickness, double acc);
+void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
+                  double *temp, int thickness, double acc);
 
 // Compute the values of the K and c thermal variables, called by spin_up() and
 // t_solve()
@@ -49,9 +49,14 @@ void setThermalIce_CP(double *K, double *temperature, int thickness);
 
 void setThermalIce_GO(double *K, double *temperature, int thickness);
 
-void setThermalFirn_CP(double *K, double *rho, double *rhoIce, int thickness);
+void setThermalFirn_CP(double *K, double *rho, double *rhoIce,
+                       double *temperature, int thickness);
 
-void setThermalFirn_SC(double *K, double *rho, double *rhoIce, int thickness);
+void setThermalFirn_SC(double *K, double *rho, double *rhoIce,
+                       double *temperature, int thickness);
+
+void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce,
+                           double *temperature, int thickness);
 
 void setHeatCapacity(double *cp, double *temperature, int thickness);
 
