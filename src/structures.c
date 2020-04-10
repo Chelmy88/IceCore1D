@@ -55,7 +55,7 @@ void deleteTimeSeries(time_series *ts) {
 }
 
 bool initModelParameters(model_parameters *params, char *fileName) {
-  params->strings = (char ***)malloc(8 * sizeof(char **));
+  params->strings = (char ***)malloc(DATA_ENUM_SIZE * sizeof(char **));
 
   for (size_t i = 0; i < DATA_ENUM_SIZE; i++) {
     params->strings[i] = (char **)malloc(5 * sizeof(char *));
@@ -70,15 +70,19 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[SCHEME][SC_CN] = "CN";
   params->strings[SCHEME][SC_EXPL] = "EXPL";
 
-  params->strings[THERMAL_ICE][TH_CP] = "CP";
-  params->strings[THERMAL_ICE][TH_GO] = "GO";
+  params->strings[THERMAL_ICE][TI_CP] = "CP";
+  params->strings[THERMAL_ICE][TI_GO] = "GO";
 
-  params->strings[THERMAL_FIRN][FI_SC] = "SC";
-  params->strings[THERMAL_FIRN][FI_CP] = "CP";
-  params->strings[THERMAL_FIRN][FI_CP_LIN] = "CP_LIN";
+  params->strings[THERMAL_FIRN][TF_SC] = "SC";
+  params->strings[THERMAL_FIRN][TF_CP] = "CP";
+  params->strings[THERMAL_FIRN][TF_CP_LIN] = "CP_LIN";
+  params->strings[THERMAL_FIRN][TF_SC_LIN] = "SC_LIN";
+
+  params->strings[HEAT_CAPACITY][CP_CP] = "CP";
+  params->strings[HEAT_CAPACITY][CP_AL] = "AL";
 
   params->strings[RHO_FIRN][RHO_FIRN] = "HL";
-  params->strings[RHO_FIRN][RHO_CONST] = "CONST";
+  params->strings[RHO_FIRN][RF_CONST] = "CONST";
 
   params->strings[VERTICAL_PROFILE][VP_FI] = "FI";
   params->strings[VERTICAL_PROFILE][VP_PA] = "PA";
@@ -96,9 +100,9 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->SAVE_TYPE = ST_UNSET;
   params->SCHEME = SC_UNSET;
   params->RHO_SNOW = -1;
-  params->THERMAL_ICE = TH_UNSET;
-  params->THERMAL_FIRN = FI_UNSET;
-  params->RHO_FIRN = RHO_UNSET;
+  params->THERMAL_ICE = TI_UNSET;
+  params->THERMAL_FIRN = TF_UNSET;
+  params->RHO_FIRN = RF_UNSET;
   params->VERTICAL_PROFILE = VP_UNSET;
   params->INTERNAL_ENERGY = IE_UNSET;
   params->MELTING = ME_UNSET;
@@ -300,32 +304,42 @@ void deleteModelData(model_data *data, const model_parameters *const params) {
 bool initModelFunctions(model_functions *functions,
                         const model_parameters *const params) {
 
-  if (params->RHO_FIRN == RHO_HL) {
+  if (params->RHO_FIRN == RF_HL) {
     functions->setRho = &setRho_HL;
-  } else if (params->RHO_FIRN == RHO_CONST) {
+  } else if (params->RHO_FIRN == RF_CONST) {
     functions->setRho = &setRho_CONST;
   } else {
     functions->setRho = NULL;
     return false;
   }
 
-  if (params->THERMAL_ICE == TH_CP) {
+  if (params->THERMAL_ICE == TI_CP) {
     functions->setThermalIce = &setThermalIce_CP;
-  } else if (params->THERMAL_ICE == TH_GO) {
+  } else if (params->THERMAL_ICE == TI_GO) {
     functions->setThermalIce = &setThermalIce_GO;
   } else {
     functions->setThermalIce = NULL;
     return false;
   }
 
-  if (params->THERMAL_FIRN == FI_CP) {
+  if (params->THERMAL_FIRN == TF_CP) {
     functions->setThermalFirn = &setThermalFirn_CP;
-  } else if (params->THERMAL_FIRN == FI_SC) {
+  } else if (params->THERMAL_FIRN == TF_SC) {
     functions->setThermalFirn = &setThermalFirn_SC;
-  } else if (params->THERMAL_FIRN == FI_CP_LIN) {
+  } else if (params->THERMAL_FIRN == TF_CP_LIN) {
     functions->setThermalFirn = &setThermalFirn_CP_LIN;
+  } else if (params->THERMAL_FIRN == TF_SC_LIN) {
+    functions->setThermalFirn = &setThermalFirn_SC_LIN;
   } else {
     functions->setThermalFirn = NULL;
+    return false;
+  }
+  if (params->HEAT_CAPACITY == CP_CP) {
+    functions->setHeatCapacity = &setHeatCapacity_CP;
+  } else if (params->HEAT_CAPACITY == CP_AL) {
+    functions->setHeatCapacity = &setHeatCapacity_AL;
+  } else {
+    functions->setHeatCapacity = NULL;
     return false;
   }
 

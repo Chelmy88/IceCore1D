@@ -76,11 +76,11 @@ void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
 void setHeatVar(const model_functions *const functions, double *K, double *cp,
                 double *temperature, int thickness, double *rho,
                 double *rhoIce) {
+  functions->setHeatCapacity(cp, temperature, thickness);
+
   functions->setThermalIce(K, temperature, thickness);
 
   functions->setThermalFirn(K, rho, rhoIce, temperature, thickness);
-
-  functions->setHeatCapacity(cp, temperature, thickness);
 }
 
 void setThermalIce_CP(double *K, double *temperature, int thickness) {
@@ -108,36 +108,51 @@ void setThermalIce_GO(double *K, double *temperature, int thickness) {
 //   return ki;
 // }
 
-void setThermalFirn_CP(double *K, double *rho, double *rhoIce,
-                       double *temperature, int thickness) {
-  UNUSED(temperature);
+void setThermalFirn_CP(double *K, double *rho, double *rhoIce, double *cp,
+                       int thickness) {
+  UNUSED(cp);
   for (int li = 0; li <= thickness; li++) {
     K[li] = 2. * K[li] * rho[li] / (3 * rhoIce[li] - rho[li]);
   }
 }
 
-void setThermalFirn_SC(double *K, double *rho, double *rhoIce,
-                       double *temperature, int thickness) {
-  UNUSED(temperature);
+void setThermalFirn_SC(double *K, double *rho, double *rhoIce, double *cp,
+                       int thickness) {
+  UNUSED(cp);
   for (int li = 0; li <= thickness; li++) {
     K[li] = K[li] * pow((rho[li] / rhoIce[li]), 2 - 0.5 * rho[li] / rhoIce[li]);
   }
 }
 
-void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce,
-                           double *temperature, int thickness) {
-  real cp = 152.5 + 7.122 * temperature[thickness];
-  setThermalFirn_CP(K, rho, rhoIce, temperature, thickness);
-  real k0 = 25 * rho[thickness] * cp / (365.25 * 24 * 3600);
+void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce, double *cp,
+                           int thickness) {
+  real cp_top = cp[thickness];
+  setThermalFirn_CP(K, rho, rhoIce, cp, thickness);
+  real k0 = 25 * rho[thickness] * cp_top / (365.25 * 24 * 3600);
   real k100 = K[thickness - 100];
   for (int li = thickness; li >= thickness - 100; --li) {
     K[li] = k0 + (thickness - li) / 100. * (k100 - k0);
   }
-  // printf("%f %f %f\n", k0, K[thickness],
-  //       K[thickness] / (rho[thickness] * cp) * (365.25 * 24 * 3600));
 }
 
-void setHeatCapacity(double *cp, double *temperature, int thickness) {
+void setThermalFirn_SC_LIN(double *K, double *rho, double *rhoIce, double *cp,
+                           int thickness) {
+  real cp_top = cp[thickness];
+  setThermalFirn_SC(K, rho, rhoIce, cp, thickness);
+  real k0 = 25 * rho[thickness] * cp_top / (365.25 * 24 * 3600);
+  real k100 = K[thickness - 100];
+  for (int li = thickness; li >= thickness - 100; --li) {
+    K[li] = k0 + (thickness - li) / 100. * (k100 - k0);
+  }
+}
+
+void setHeatCapacity_CP(double *cp, double *temperature, int thickness) {
+  for (int li = 0; li <= thickness; li++) {
+    cp[li] = 152.5 + 7.122 * temperature[li];
+  }
+}
+
+void setHeatCapacity_AL(double *cp, double *temperature, int thickness) {
   for (int li = 0; li <= thickness; li++) {
     cp[li] = 152.5 + 7.122 * temperature[li];
   }

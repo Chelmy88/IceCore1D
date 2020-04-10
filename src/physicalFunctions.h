@@ -45,20 +45,25 @@ void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
 void setHeatVar(const model_functions *const functions, double *K, double *cp,
                 double *told, int thickness, double *rho, double *rhoIce);
 
+void setHeatCapacity_CP(double *cp, double *temperature, int thickness);
+
+void setHeatCapacity_AL(double *cp, double *temperature, int thickness);
+
 void setThermalIce_CP(double *K, double *temperature, int thickness);
 
 void setThermalIce_GO(double *K, double *temperature, int thickness);
 
-void setThermalFirn_CP(double *K, double *rho, double *rhoIce,
-                       double *temperature, int thickness);
+void setThermalFirn_CP(double *K, double *rho, double *rhoIce, double *cp,
+                       int thickness);
 
-void setThermalFirn_SC(double *K, double *rho, double *rhoIce,
-                       double *temperature, int thickness);
+void setThermalFirn_SC(double *K, double *rho, double *rhoIce, double *cp,
+                       int thickness);
 
-void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce,
-                           double *temperature, int thickness);
+void setThermalFirn_CP_LIN(double *K, double *rho, double *rhoIce, double *cp,
+                           int thickness);
 
-void setHeatCapacity(double *cp, double *temperature, int thickness);
+void setThermalFirn_SC_LIN(double *K, double *rho, double *rhoIce, double *cp,
+                           int thickness);
 
 void computeMelt(const model_functions *const functions, double *m,
                  double *tground, double *rho, double L, double K0, double cp0,

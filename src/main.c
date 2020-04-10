@@ -227,8 +227,8 @@ void saveData(const model_data *const data,
           ".0f_%s_Thermal_%s_Firn_%s_Internal_Energy_%s_Scheme_%s",
           params->OUTPUT_PATH, data->mw, data->QG * 1000, data->pCor,
           data->tCor, data->tCor2, data->deltaH, data->len, data->flat, "EDC",
-          params->strings[THERMAL][params->THERMAL_ICE],
-          params->strings[FIRN][params->THERMAL_FIRN],
+          params->strings[THERMAL_ICE][params->THERMAL_ICE],
+          params->strings[THERMAL_FIRN][params->THERMAL_FIRN],
           params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
           params->strings[SCHEME][params->SCHEME]);
   //

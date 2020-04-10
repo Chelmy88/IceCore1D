@@ -405,9 +405,9 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "THERMAL_ICE") == 0) {
     removeSpaces(val);
     if (strcmp(val, "CP") == 0) {
-      params->THERMAL_ICE = TH_CP;
+      params->THERMAL_ICE = TI_CP;
     } else if (strcmp(val, "GO") == 0) {
-      params->THERMAL_ICE = TH_GO;
+      params->THERMAL_ICE = TI_GO;
     } else {
       printf("[E] Unknown value %s for THERMAL\n", val);
       return false;
@@ -417,11 +417,13 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "THERMAL_FIRN") == 0) {
     removeSpaces(val);
     if (strcmp(val, "SC") == 0) {
-      params->THERMAL_FIRN = FI_SC;
+      params->THERMAL_FIRN = TF_SC;
     } else if (strcmp(val, "CP") == 0) {
-      params->THERMAL_FIRN = FI_CP;
+      params->THERMAL_FIRN = TF_CP;
     } else if (strcmp(val, "CP_LIN") == 0) {
-      params->THERMAL_FIRN = FI_CP_LIN;
+      params->THERMAL_FIRN = TF_CP_LIN;
+    } else if (strcmp(val, "SC_LIN") == 0) {
+      params->THERMAL_FIRN = TF_SC_LIN;
     } else {
       printf("[E] Unknown value %s for THERMAL_FIRN\n", val);
       return false;
@@ -431,11 +433,23 @@ bool setParameter(model_parameters *const params, const char *const arg,
   else if (strcmp(arg, "RHO_FIRN") == 0) {
     removeSpaces(val);
     if (strcmp(val, "HL") == 0) {
-      params->RHO_FIRN = RHO_HL;
+      params->RHO_FIRN = RF_HL;
     } else if (strcmp(val, "CONST") == 0) {
-      params->RHO_FIRN = RHO_CONST;
+      params->RHO_FIRN = RF_CONST;
     } else {
       printf("[E] Unknown value %s for RHO_FIRN\n", val);
+      return false;
+    }
+  }
+
+  else if (strcmp(arg, "HEAT_CAPACITY") == 0) {
+    removeSpaces(val);
+    if (strcmp(val, "CP") == 0) {
+      params->HEAT_CAPACITY = CP_CP;
+    } else if (strcmp(val, "CONST") == 0) {
+      params->HEAT_CAPACITY = CP_AL;
+    } else {
+      printf("[E] Unknown value %s for HEAT_CAPACITY\n", val);
       return false;
     }
   }
@@ -799,15 +813,15 @@ bool checkParameter(model_parameters *const params) {
     params->SCHEME = SC_CN;
     printf("[W] Unset parameter SCHEME, the default value of CN is used\n");
   }
-  if (params->THERMAL_ICE == TH_UNSET) {
-    params->THERMAL_ICE = TH_CP;
+  if (params->THERMAL_ICE == TI_UNSET) {
+    params->THERMAL_ICE = TI_CP;
     printf("[W] Unset parameter THERMAL, the default value of CP is used\n");
   }
-  if (params->THERMAL_FIRN == FI_UNSET) {
-    params->THERMAL_FIRN = FI_SC;
+  if (params->THERMAL_FIRN == TF_UNSET) {
+    params->THERMAL_FIRN = TF_SC;
     printf("[W] Unset parameter FIRN, the default value of SC is used\n");
   }
-  if (params->RHO_FIRN == RHO_UNSET) {
+  if (params->RHO_FIRN == RF_UNSET) {
     params->RHO_FIRN = RHO_FIRN;
     printf("[W] Unset parameter RHO_FIRN, the default value of FIRN is used\n");
   }

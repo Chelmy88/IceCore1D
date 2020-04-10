@@ -27,9 +27,10 @@ typedef struct _model_values {
 
 enum SAVE_TYPE_ENUM { ST_MATRIX, ST_VECTOR, ST_UNSET };
 enum SCHEME_ENUM { SC_CN, SC_EXPL, SC_UNSET };
-enum THERMAL_ENUM { TH_CP, TH_GO, TH_UNSET };
-enum FIRN_ENUM { FI_SC, FI_CP, FI_CP_LIN, FI_UNSET };
-enum RHO_TYPE_ENUM { RHO_HL, RHO_CONST, RHO_UNSET };
+enum THERMAL_ICE_ENUM { TI_CP, TI_GO, TI_UNSET };
+enum THERMAL_FIRN_ENUM { TF_SC, TF_CP, TF_CP_LIN, TF_SC_LIN, TF_UNSET };
+enum RHO_FIRN_ENUM { RF_HL, RF_CONST, RF_UNSET };
+enum HEAT_CAPACITY_ENUM { CP_CP, CP_AL, CP_UNSET };
 enum VERTICAL_PROFILE_ENUME { VP_FI, VP_PA, VP_UNSET };
 enum INTERNAL_ENERGY_ENUM { IE_ON, IE_OFF, IE_UNSET };
 enum MELTING_ENUM { ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET };
@@ -40,6 +41,7 @@ enum DATA_ENUM {
   THERMAL_ICE,
   THERMAL_FIRN,
   RHO_FIRN,
+  HEAT_CAPACITY,
   VERTICAL_PROFILE,
   INTERNAL_ENERGY,
   MELTING,
@@ -56,11 +58,15 @@ typedef struct _model_parameters {
   enum SCHEME_ENUM SCHEME; //"CN"//Scheme used, values can be CN or expl
   int RHO_SNOW; // 350 //Value of the snow density used in the computation of
                 // the density profile
-  enum THERMAL_ENUM
+  enum THERMAL_ICE_ENUM
       THERMAL_ICE; // "CP"//Model used for themal parameters, can be CP or GO
-  enum FIRN_ENUM THERMAL_FIRN; // "SC" // Correction for the firn thermal
+  enum THERMAL_FIRN_ENUM
+      THERMAL_FIRN; // "SC" // Correction for the firn thermal
+  // conductivity, can be CP,SC or FI
+  enum HEAT_CAPACITY_ENUM
+      HEAT_CAPACITY;           // "SC" // Correction for the firn thermal
                                // conductivity, can be CP,SC or FI
-  enum RHO_TYPE_ENUM RHO_FIRN; // "FIRN" // Set the density profile to realistic
+  enum RHO_FIRN_ENUM RHO_FIRN; // "FIRN" // Set the density profile to realistic
                                // (FIRN) or constant (CONST)
   enum VERTICAL_PROFILE_ENUME
       VERTICAL_PROFILE; // "FI" // Set the flux shape function to FI or PA
@@ -139,8 +145,8 @@ typedef struct _model_functions {
   // Compute the values of the K and c thermal variables, called by spin_up()
   // and t_solve()
   void (*setThermalIce)(double *K, double *temperature, int thickness);
-  void (*setThermalFirn)(double *K, double *rho, double *rhoIce,
-                         double *temperature, int thickness);
+  void (*setThermalFirn)(double *K, double *rho, double *rhoIce, double *cp,
+                         int thickness);
   void (*setHeatCapacity)(double *cp, double *temperature, int thickness);
 
   void (*computeMelt)(double diff, double tmelt, double *m, double *tground,
