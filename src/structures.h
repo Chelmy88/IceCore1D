@@ -28,9 +28,23 @@ typedef struct _model_values {
 enum SAVE_TYPE_ENUM { ST_MATRIX, ST_VECTOR, ST_UNSET };
 enum SCHEME_ENUM { SC_CN, SC_EXPL, SC_UNSET };
 enum THERMAL_ICE_ENUM { TI_CP, TI_GO, TI_UNSET };
-enum THERMAL_FIRN_ENUM { TF_SC, TF_CP, TF_CP_LIN, TF_SC_LIN, TF_UNSET };
+enum THERMAL_FIRN_ENUM {
+  TF_SC,
+  TF_CP,
+  TF_CP_LIN,
+  TF_SC_LIN,
+  TF_CP_AL,
+  TF_SC_AL,
+  TF_SC_ST,
+  TF_CP_ST,
+  TF_CP_WE_ADD,
+  TF_CP_WE_LIN,
+  TF_SC_WE_ADD,
+  TF_SC_WE_LIN,
+  TF_UNSET
+};
 enum RHO_FIRN_ENUM { RF_HL, RF_CONST, RF_UNSET };
-enum HEAT_CAPACITY_ENUM { CP_CP, CP_AL, CP_UNSET };
+enum HEAT_CAPACITY_ENUM { CP_CP, CP_CP_AL, CP_UNSET };
 enum VERTICAL_PROFILE_ENUME { VP_FI, VP_PA, VP_UNSET };
 enum INTERNAL_ENERGY_ENUM { IE_ON, IE_OFF, IE_UNSET };
 enum MELTING_ENUM { ME_FREE_MELT, ME_FREEZING_NO_ICE, ME_FREEZING, ME_UNSET };
@@ -148,7 +162,8 @@ typedef struct _model_functions {
   void (*setThermalIce)(double *K, double *temperature, int thickness);
   void (*setThermalFirn)(double *K, double *rho, double *rhoIce, double *cp,
                          int thickness, double *temperature);
-  void (*setHeatCapacity)(double *cp, double *temperature, int thickness);
+  void (*setHeatCapacity)(double *cp, double *rho, double *rhoIce,
+                          double *temperature, int thickness);
 
   void (*computeMelt)(double diff, double tmelt, double *m, double *tground,
                       double *rho, double L, double K0, double cp0,

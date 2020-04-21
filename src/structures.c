@@ -57,10 +57,15 @@ void deleteTimeSeries(time_series *ts) {
 bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings = (char ***)malloc(DATA_ENUM_SIZE * sizeof(char **));
 
+  int size =
+      fmax(fmax(fmax(fmax(ST_UNSET, SC_UNSET), fmax(TI_UNSET, TF_UNSET)),
+                fmax(fmax(CP_UNSET, RF_UNSET), fmax(VP_UNSET, IE_UNSET))),
+           ME_UNSET);
+  printf("%d\n", size);
   for (size_t i = 0; i < DATA_ENUM_SIZE; i++) {
-    params->strings[i] = (char **)malloc(5 * sizeof(char *));
-    for (size_t j = 0; j < 5; j++) {
-      params->strings[i][j] = (char *)malloc(50 * sizeof(char));
+    params->strings[i] = (char **)calloc(size, sizeof(char *));
+    for (size_t j = 0; j < 10; j++) {
+      params->strings[i][j] = (char *)calloc(50, sizeof(char));
     }
   }
 
@@ -73,13 +78,21 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[THERMAL_ICE][TI_CP] = "CP";
   params->strings[THERMAL_ICE][TI_GO] = "GO";
 
-  params->strings[THERMAL_FIRN][TF_SC] = "SC";
   params->strings[THERMAL_FIRN][TF_CP] = "CP";
+  params->strings[THERMAL_FIRN][TF_SC] = "SC";
   params->strings[THERMAL_FIRN][TF_CP_LIN] = "CP_LIN";
   params->strings[THERMAL_FIRN][TF_SC_LIN] = "SC_LIN";
+  params->strings[THERMAL_FIRN][TF_CP_AL] = "CP_AL";
+  params->strings[THERMAL_FIRN][TF_SC_AL] = "SC_AL";
+  params->strings[THERMAL_FIRN][TF_CP_ST] = "CP_ST";
+  params->strings[THERMAL_FIRN][TF_SC_ST] = "SC_ST";
+  params->strings[THERMAL_FIRN][TF_CP_WE_ADD] = "CP_WE_ADD";
+  params->strings[THERMAL_FIRN][TF_CP_WE_LIN] = "CP_WE_LIN";
+  params->strings[THERMAL_FIRN][TF_SC_WE_ADD] = "SC_WE_ADD";
+  params->strings[THERMAL_FIRN][TF_SC_WE_LIN] = "SC_WE_LIN";
 
   params->strings[HEAT_CAPACITY][CP_CP] = "CP";
-  params->strings[HEAT_CAPACITY][CP_AL] = "AL";
+  params->strings[HEAT_CAPACITY][CP_CP_AL] = "CP_AL";
 
   params->strings[RHO_FIRN][RF_HL] = "HL";
   params->strings[RHO_FIRN][RF_CONST] = "CONST";
@@ -90,9 +103,9 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[INTERNAL_ENERGY][IE_ON] = "ON";
   params->strings[INTERNAL_ENERGY][IE_OFF] = "OFF";
 
-  params->strings[MELTING][SC_EXPL] = "FREE_MELT";
-  params->strings[MELTING][SC_EXPL] = "FREEZING_NO_ICE";
-  params->strings[MELTING][SC_EXPL] = "FREEZING";
+  params->strings[MELTING][ME_FREE_MELT] = "FREE_MELT";
+  params->strings[MELTING][ME_FREEZING_NO_ICE] = "FREEZING_NO_ICE";
+  params->strings[MELTING][ME_FREEZING] = "FREEZING";
 
   params->Z = -1;
   params->T = -1;
@@ -346,14 +359,31 @@ bool initModelFunctions(model_functions *functions,
     functions->setThermalFirn = &setThermalFirn_CP_LIN;
   } else if (params->THERMAL_FIRN == TF_SC_LIN) {
     functions->setThermalFirn = &setThermalFirn_SC_LIN;
+  } else if (params->THERMAL_FIRN == TF_CP_AL) {
+    functions->setThermalFirn = &setThermalFirn_CP_AL;
+  } else if (params->THERMAL_FIRN == TF_SC_AL) {
+    functions->setThermalFirn = &setThermalFirn_SC_AL;
+  } else if (params->THERMAL_FIRN == TF_CP_ST) {
+    functions->setThermalFirn = &setThermalFirn_CP_ST;
+  } else if (params->THERMAL_FIRN == TF_SC_ST) {
+    functions->setThermalFirn = &setThermalFirn_SC_ST;
+  } else if (params->THERMAL_FIRN == TF_CP_WE_ADD) {
+    functions->setThermalFirn = &setThermalFirn_CP_WE_ADD;
+  } else if (params->THERMAL_FIRN == TF_CP_WE_LIN) {
+    functions->setThermalFirn = &setThermalFirn_CP_WE_LIN;
+  } else if (params->THERMAL_FIRN == TF_SC_WE_ADD) {
+    functions->setThermalFirn = &setThermalFirn_SC_WE_ADD;
+  } else if (params->THERMAL_FIRN == TF_SC_WE_LIN) {
+    functions->setThermalFirn = &setThermalFirn_SC_WE_LIN;
   } else {
     functions->setThermalFirn = NULL;
     return false;
   }
+
   if (params->HEAT_CAPACITY == CP_CP) {
     functions->setHeatCapacity = &setHeatCapacity_CP;
-  } else if (params->HEAT_CAPACITY == CP_AL) {
-    functions->setHeatCapacity = &setHeatCapacity_AL;
+  } else if (params->HEAT_CAPACITY == CP_CP_AL) {
+    functions->setHeatCapacity = &setHeatCapacity_CP_AL;
   } else {
     functions->setHeatCapacity = NULL;
     return false;

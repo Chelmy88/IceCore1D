@@ -424,6 +424,22 @@ bool setParameter(model_parameters *const params, const char *const arg,
       params->THERMAL_FIRN = TF_CP_LIN;
     } else if (strcmp(val, "SC_LIN") == 0) {
       params->THERMAL_FIRN = TF_SC_LIN;
+    } else if (strcmp(val, "CP_AL") == 0) {
+      params->THERMAL_FIRN = TF_CP_AL;
+    } else if (strcmp(val, "SC_AL") == 0) {
+      params->THERMAL_FIRN = TF_SC_AL;
+    } else if (strcmp(val, "CP_ST") == 0) {
+      params->THERMAL_FIRN = TF_CP_ST;
+    } else if (strcmp(val, "SC_ST") == 0) {
+      params->THERMAL_FIRN = TF_SC_ST;
+    } else if (strcmp(val, "CP_WE_ADD") == 0) {
+      params->THERMAL_FIRN = TF_CP_WE_ADD;
+    } else if (strcmp(val, "CP_WE_LIN") == 0) {
+      params->THERMAL_FIRN = TF_CP_WE_LIN;
+    } else if (strcmp(val, "SC_WE_ADD") == 0) {
+      params->THERMAL_FIRN = TF_SC_WE_ADD;
+    } else if (strcmp(val, "SC_WE_LIN") == 0) {
+      params->THERMAL_FIRN = TF_SC_WE_LIN;
     } else {
       printf("[E] Unknown value %s for THERMAL_FIRN\n", val);
       return false;
@@ -446,8 +462,8 @@ bool setParameter(model_parameters *const params, const char *const arg,
     removeSpaces(val);
     if (strcmp(val, "CP") == 0) {
       params->HEAT_CAPACITY = CP_CP;
-    } else if (strcmp(val, "CONST") == 0) {
-      params->HEAT_CAPACITY = CP_AL;
+    } else if (strcmp(val, "CP_AL") == 0) {
+      params->HEAT_CAPACITY = CP_CP_AL;
     } else {
       printf("[E] Unknown value %s for HEAT_CAPACITY\n", val);
       return false;
