@@ -1,14 +1,17 @@
 ifdef OPTIM
-    OPTIMFLAGS+=-O3
+    OPTIMFLAGS+=-Ofast -march=skylake
 endif
-
 ifdef PROFILE
     PROFILEFLAGS+=-p
 endif
 
-OPTIMFLAGS?=-O0 -Wall -Wextra -Wpadded
+ifeq ($(PREFIX),)
+    PREFIX := /usr/local/bin
+endif
 
-CC=gcc-9
+OPTIMFLAGS?=-O0 -Wall -Wextra
+
+CC= gcc-9
 LD=${CC}
 CFLAGS+= -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
 LDFLAGS+= -lm
@@ -34,6 +37,9 @@ $(BINARY): $(OBJECTS)
 
 $(BUILDIR)/%.o: $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+install:
+	install -m 775 $(BINARYDIR)/$(BINARY) $(PREFIX)
 
 clean:
 	rm -f $(BINARYDIR)/* $(BUILDIR)/*
