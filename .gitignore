@@ -6,3 +6,7 @@ build/*
 *.swp
 output*
 prof
+r00*
+*.Rhistory
+snowpack
+*.xls*
