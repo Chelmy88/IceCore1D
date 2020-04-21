@@ -61,7 +61,6 @@ bool initModelParameters(model_parameters *params, char *fileName) {
       fmax(fmax(fmax(fmax(ST_UNSET, SC_UNSET), fmax(TI_UNSET, TF_UNSET)),
                 fmax(fmax(CP_UNSET, RF_UNSET), fmax(VP_UNSET, IE_UNSET))),
            ME_UNSET);
-  printf("%d\n", size);
   for (size_t i = 0; i < DATA_ENUM_SIZE; i++) {
     params->strings[i] = (char **)calloc(size, sizeof(char *));
     for (size_t j = 0; j < 10; j++) {
