@@ -255,14 +255,11 @@ void saveData(const model_data *const data,
   if (params->SAVE_TYPE == ST_MATRIX) {
     sprintf(fileName, "%s.dat", "age_matrix");
     save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
-    sprintf(fileName, "%s.dat", "temp_matrix");
-    if (params->T == 10001) {
-      save2DTable(data->temperature, fileName, path, params->Z, params->T, 1,
-                  10, 0);
-    } else if (params->T == 40001) {
-      save2DTable(data->temperature, fileName, path, params->Z, params->T, 1,
-                  10, 20000);
-    }
+    sprintf(fileName, "%s.dat", "temperature_matrix");
+    save2DTable(data->temperature, fileName, path, params->Z, params->T, 1, 1,
+                0);
+    sprintf(fileName, "%s.dat", "density_matrix");
+    save2DTable(data->density, fileName, path, params->Z, params->T, 1, 1, 0);
   } else if (params->SAVE_TYPE == ST_VECTOR) {
     sprintf(fileName, "%s.dat", "age_profile");
     save2DTable(age, fileName, path, ageVerRes, ageHorRes + 1, 1, 1, 0);
