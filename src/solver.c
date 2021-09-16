@@ -42,7 +42,6 @@ void spin_up(const model_functions *const functions,
   // Perform a spin up for the time indicated in header (time in hyr). The spin
   // up is done with a 2-passes implicit scheme.
   int Z = params->Z;
-  double begin3 = omp_get_wtime();
   int thickness = (int)thick;
   int i, li = 0;
   real L = 333500;
@@ -98,7 +97,6 @@ void spin_up(const model_functions *const functions,
     }
   }
   melt[0] = m;
-  printf("Spin up OK -- in %f seconds\n", (double)(omp_get_wtime() - begin3));
 }
 
 void t_solve(const model_functions *const functions,

@@ -22,11 +22,11 @@ bool readTable(double *table, const char *const fileName) {
       li++;
     }
     if (fclose(fp) == 0) {
-      printf("[I] File imported successfully (%d data) and closed: %s \n\n", li,
+      printf("[I] File imported successfully (%d data) and closed: %s \n", li,
              fileName);
       return true;
     } else {
-      printf("[E] Not able to close: %s \n\n", fileName);
+      printf("[E] Not able to close: %s \n", fileName);
       return false;
     }
   }
@@ -43,14 +43,14 @@ void saveTable(double *table, const char *const name, const char *const path,
   char full_path[400] = "";
   sprintf(full_path, "%s/%s", path, name);
   if ((fp = fopen(full_path, "w+")) == NULL) {
-    printf("Cannot open file: %s\n", full_path);
+    printf("[E] Cannot open file: %s\n", full_path);
   } else {
-    printf("File oppened:%s\n...writing...\n", full_path);
+    printf("[I] File oppened:%s\n[I] ...writing...\n", full_path);
     for (li = 0; li < tabSize; li++) {
       fprintf(fp, "%f \n", table[li]);
     }
     fclose(fp);
-    printf("File closed: %s \n\n", full_path);
+    printf("[I] File closed: %s \n", full_path);
   }
 }
 
@@ -68,7 +68,7 @@ void save2DTable(double **table, const char *const name, const char *const path,
   if ((fp = fopen(full_path, "w+")) == NULL) {
     printf("[E] Cannot open file: %s\n", full_path);
   } else {
-    printf("File oppened:%s\n...writing...\n", full_path);
+    printf("[I] File oppened:%s\n[I] ...writing...\n", full_path);
     for (li = 0; li < nRow; li += skipR) {
       for (co = startC; co < nCol; co += skipC) {
         if (co != startC) {
@@ -83,7 +83,7 @@ void save2DTable(double **table, const char *const name, const char *const path,
       fprintf(fp, "\n");
     }
     fclose(fp);
-    printf("File closed: %s \n\n", full_path);
+    printf("[I] File closed: %s \n", full_path);
   }
 }
 
@@ -102,9 +102,9 @@ void save2DTable_top(double **table, const char *const name,
   char full_path[400] = "";
   sprintf(full_path, "%s/%s", path, name);
   if ((fp = fopen(full_path, "w+")) == NULL) {
-    printf("Cannot open file: %s\n", full_path);
+    printf("[I] Cannot open file: %s\n", full_path);
   } else {
-    printf("File oppened:%s\n...writing...\n", full_path);
+    printf("[I] File oppened:%s\n[I] ...writing...\n", full_path);
     for (li = 0; li < nRow; li += 1) {
       for (co = startC; co < nCol; co += 1) {
         int real_li = 0;
@@ -123,7 +123,7 @@ void save2DTable_top(double **table, const char *const name,
       fprintf(fp, "\n");
     }
     fclose(fp);
-    printf("File closed: %s \n\n", full_path);
+    printf("[I] File closed: %s \n", full_path);
   }
 }
 
@@ -132,12 +132,12 @@ bool copyFile(const char *const inFile, const char *const outFile) {
   char ch;
   fs = fopen(inFile, "r");
   if (fs == NULL) {
-    printf("Error in opening source file: %s", inFile);
+    printf("[E] Error in opening source file: %s", inFile);
     return false;
   }
   ft = fopen(outFile, "w");
   if (ft == NULL) {
-    printf("Error in opening destination file: %s", outFile);
+    printf("[E] Error in opening destination file: %s", outFile);
     fclose(fs);
     return false;
   }
@@ -149,7 +149,7 @@ bool copyFile(const char *const inFile, const char *const outFile) {
       fputc(ch, ft);
     }
   }
-  printf("File copied successfully");
+  printf("[I] File copied successfully");
   fclose(fs);
   fclose(ft);
   return true;
@@ -189,7 +189,6 @@ bool readInitFile(model_parameters *const params, const char *const fileName) {
                          params->values.len_n * params->values.flat_n;
 
     printf("[I] Ini file %s read successfully\n", fileName);
-    printModelParameters(params);
     return true;
   } else {
     return false;
@@ -956,7 +955,6 @@ bool createOutputDirs(model_parameters *const params)
                           params->strings[RHO_FIRN][params->RHO_FIRN],
                           params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
                           params->strings[SCHEME][params->SCHEME]);
-                printf("path %s\n", path);
                   // Check if the man export directory and the subdirectory are already existing
                 if(!checkOrCreateDir(path))
                 {

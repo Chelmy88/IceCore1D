@@ -151,7 +151,7 @@ bool mainLoop(model_parameters *params, time_series *ts,
 #pragma omp atomic
                   count++;
 #pragma omp flush(count)
-                  printf("END LOOP : %d/%d\n\n", count, tot);
+                  printf("[I] Finished simulation: %d/%d\n", count, tot);
                   fflush(stdout);
                   deleteModelData(&data, params);
                 }
@@ -174,9 +174,9 @@ double **computeAge(const model_data *const data,
   // // POST PROCESSING//
   // //Compute the difference with the age profile for 213 points and compute
   // the mean of the difference
-  printf("\nComputing age ... ");
+  printf("[i] Computing age ...\n");
   fflush(stdout);
-  double begin3 = omp_get_wtime();
+  double age_timer = omp_get_wtime();
   double **ageRel;
 
   ageRel = malloc((size_t)ageVerRes * sizeof(*ageRel));
@@ -199,7 +199,7 @@ double **computeAge(const model_data *const data,
       ageRel[h - 1][a] = (a * 10 + ageCor - age) * 100;
     }
   }
-  printf("Age ok in in: %f secondes\n", (double)(omp_get_wtime() - begin3));
+  printf("[i] Age profile computed in: %f secondes\n", (double)(omp_get_wtime() - age_timer));
 
   return (ageRel);
 }
@@ -239,8 +239,6 @@ void saveData(const model_data *const data,
           params->strings[RHO_FIRN][params->RHO_FIRN],
           params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
           params->strings[SCHEME][params->SCHEME]);
-  printf("1 %s", path);
-
   // Save the temperature profile, the melt rate and the age scale
   sprintf(fileName, "%s.dat", "melt_rate");
   saveTable(data->melt, fileName, path, params->T);

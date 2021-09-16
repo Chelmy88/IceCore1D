@@ -53,6 +53,9 @@ void runModel(model_data *data, const model_parameters *const params,
 
   // SPIN UP MODEL//
 
+	double spin_up_timer = omp_get_wtime();
+
+
   // Spin up the second profile used for the valley effect
   if (data->deltaH != 0) {
     for (li = 0; li <= (size_t)(data->iceThickness[0] - data->deltaH); li++) {
@@ -87,6 +90,10 @@ void runModel(model_data *data, const model_parameters *const params,
             temperatureBorder, data->deltaH, 0, data->len, data->flat,
             data->melt, dens);
   }
+
+	printf("[I] Spin up done in %f seconds\n", (double)(omp_get_wtime() - spin_up_timer));
+
+
   for (li = 0; li < Z; li++) {
     data->temperature[li][0] = spin_up_temp[li];
     data->density[li][0] = dens[li];
@@ -150,6 +157,6 @@ void runModel(model_data *data, const model_parameters *const params,
 
   // melt[0]=melt[1];
   // Print the time for the run and the individual loop mean time
-  printf("\nIntegration ok in: %f secondes  ", time_for_loop);
-  printf("Mean run time: %f miliseconds\n", time_for_loop / (T - 1.) * 1000.);
+  printf("[I] Integration ok in: %f secondes \n", time_for_loop);
+  printf("[I] Mean run time: %f miliseconds\n", time_for_loop / (T - 1.) * 1000.);
 }
