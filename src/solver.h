@@ -72,8 +72,8 @@ void integrate_expl(double *told, double *a, double *b, double tground,
                     double tsurf, double tsurf_old, int thickness, double *se);
 // Compute the temperature using the explicit scheme, called by  t_solve()
 
-void tempScale(double *told, double thickness, double thicknessFuture,
-               double tsurf);
+void tempScale(double *told, const double thick, const double thickFuture,
+               const double tsurf, const size_t Z);
 // Scale the temperature profile to the thickness value of the next step
 
 #endif /* !SOLVER_H */

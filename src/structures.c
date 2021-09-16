@@ -262,7 +262,7 @@ bool initModelData(model_data *data, const model_parameters *const params,
     return false;
   }
 
-  data->iceThickness = calloc(params->T, sizeof(real *));
+  data->iceThickness = calloc(params->T + 1, sizeof(real *));
   if (!data->iceThickness) {
     return false;
   }

@@ -185,6 +185,7 @@ void t_solve(const model_functions *const functions,
     melt[time] /= 2;
     freeze[time] += f;
     freeze[time] /= 2;
+
   } else if (params->SCHEME == SC_EXPL) // Explicit scheme
   {
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
@@ -199,6 +200,7 @@ void t_solve(const model_functions *const functions,
     melt[time] += m * 31556926;
     freeze[time] = f;
   }
+
   for (li = 0; li <= thickness; li++) {
     ice_density[li] = rhoIce[li];
     density[li] = rho[li];
@@ -285,16 +287,17 @@ void integrate_CN(double *tint, double *told, double *alpha, double *beta,
 }
 
 // Scale the temperature profile to the next thickness value
-void tempScale(double *told, double thick, double thickFuture, double tsurf) {
+void tempScale(double *told, const double thick, const double thickFuture,
+               const double tsurf, const size_t Z) {
   int thickness = (int)thick;
   int thicknessFuture = (int)thickFuture;
-  double temperature[thicknessFuture];
-  memset(temperature, 0, thicknessFuture);
+  real *temperature;
+  temperature = calloc(Z, sizeof(real));
 
   int li = 0;
   double deltaThick = thicknessFuture - thickness;
-  if (deltaThick >
-      0) // If next thickness is bigger, ass some layers at surface temperature
+  if (deltaThick > 0)
+  // If next thickness is bigger, add some layers at surface temperature
   {
     for (li = 0; li <= thickness; li++) {
       temperature[li] = told[li];
@@ -312,6 +315,9 @@ void tempScale(double *told, double thick, double thickFuture, double tsurf) {
           told[oldLiF] + (told[oldLiF + 1] - told[oldLiF]) * (oldLi - oldLiF);
     }
     temperature[thicknessFuture] = told[thickness];
+    for (li = thicknessFuture + 1; li <= thickness; li++) {
+      temperature[li] = 0;
+    }
   } else {
     for (li = 0; li <= thickness; li++) {
       temperature[li] = told[li];
@@ -320,7 +326,8 @@ void tempScale(double *told, double thick, double thickFuture, double tsurf) {
   int reset_size = deltaThick > 0 ? thicknessFuture + 1 : thickness + 1;
   // printf("%d\n",reset_size);
   memset(told, 0, reset_size);
-  for (li = 0; li <= 3400; li++) {
+  for (size_t li = 0; li < Z; li++) {
     told[li] = temperature[li];
   }
+  free(temperature);
 }

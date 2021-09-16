@@ -5,8 +5,8 @@ void runModel(model_data *data, const model_parameters *const params,
               const time_series *const ts,
               const model_functions *const functions) {
   size_t li = 0;
-  size_t Z = params->Z;
-  size_t T = params->T;
+  const size_t Z = params->Z;
+  const size_t T = params->T;
 
   real *spin_up_temp, *spin_up_temp2, *temperatureBorder, *dens, *ice_density;
 
@@ -24,6 +24,7 @@ void runModel(model_data *data, const model_parameters *const params,
     data->acc[li] = ts->accLoad[li] * 3600 * 24 * 365 / 31556926;
     // surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
   }
+  data->iceThickness[T] = data->iceThickness[T - 1];
 
   real t0 = data->surfaceTemp[T - 1];
   real tLGM = data->surfaceTemp[T - 257];
@@ -86,7 +87,6 @@ void runModel(model_data *data, const model_parameters *const params,
             temperatureBorder, data->deltaH, 0, data->len, data->flat,
             data->melt, dens);
   }
-
   for (li = 0; li < Z; li++) {
     data->temperature[li][0] = spin_up_temp[li];
     data->density[li][0] = dens[li];
@@ -101,36 +101,40 @@ void runModel(model_data *data, const model_parameters *const params,
   for (time = 1; time < T; time++) {
     real begin2 = omp_get_wtime();
     for (li = 0; li < Z; li++) {
-      data->tnew[li] = 0;
-      dens[li] = 0;
+      ice_density[li] = 0.;
+      dens[li] = 0.;
     }
+
     for (li = 0; li <= (size_t)data->iceThickness[time - 1]; li++) {
       data->tnew[li] = data->temperature[li][time - 1];
     }
-    if (data->deltaH != 0) {
-
-      t_solve(functions, params, temperatureBorder, time,
-              data->iceThickness[time - 1] - data->deltaH,
-              data->iceThickness[time] - data->deltaH, data->surfaceTemp[time],
-              data->acc[time], data->melt, data->QG, data->mw,
-              temperatureBorder, data->deltaH, 1, data->len, data->flat,
-              data->freeze, dens, ice_density);
-    }
-    t_solve(functions, params, data->tnew, time, data->iceThickness[time - 1],
-            data->iceThickness[time], data->surfaceTemp[time], data->acc[time],
-            data->melt, data->QG, data->mw, temperatureBorder, data->deltaH, 0,
-            data->len, data->flat, data->freeze, dens, ice_density);
 
     tempScale(data->tnew, data->iceThickness[time - 1],
-              data->iceThickness[time], data->surfaceTemp[time]);
+              data->iceThickness[time], data->surfaceTemp[time - 1], Z);
 
     if (data->deltaH != 0) {
       tempScale(temperatureBorder, data->iceThickness[time - 1] - data->deltaH,
                 data->iceThickness[time] - data->deltaH,
-                data->surfaceTemp[time]);
+                data->surfaceTemp[time - 1], Z);
     }
 
-    for (li = 0; li <= (size_t)data->iceThickness[time]; li++) {
+    if (data->deltaH != 0) {
+
+      t_solve(functions, params, temperatureBorder, time,
+              data->iceThickness[time] - data->deltaH,
+              data->iceThickness[time + 1] - data->deltaH,
+              data->surfaceTemp[time], data->acc[time], data->melt, data->QG,
+              data->mw, temperatureBorder, data->deltaH, 1, data->len,
+              data->flat, data->freeze, dens, ice_density);
+    }
+
+    t_solve(functions, params, data->tnew, time, data->iceThickness[time],
+            data->iceThickness[time + 1], data->surfaceTemp[time],
+            data->acc[time], data->melt, data->QG, data->mw, temperatureBorder,
+            data->deltaH, 0, data->len, data->flat, data->freeze, dens,
+            ice_density);
+
+    for (li = 0; li < Z; li++) {
       data->temperature[li][time] = data->tnew[li];
       data->density[li][time] = dens[li];
       data->ice_density[li][time] = ice_density[li];
