@@ -149,7 +149,6 @@ bool copyFile(const char *const inFile, const char *const outFile) {
       fputc(ch, ft);
     }
   }
-  printf("[I] File copied successfully");
   fclose(fs);
   fclose(ft);
   return true;
@@ -921,9 +920,6 @@ bool checkOrCreateDir(char *const path)
  }
   return(true);
 }
-
-
-
 
 bool createOutputDirs(model_parameters *const params)
 {

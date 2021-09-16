@@ -76,7 +76,7 @@ int main() {
 
   size_t exit_status;
   if (mainLoop(&params, &ts, &functions)) {
-    printf("Run OK -- in %f seconds\n", (double)(omp_get_wtime() - begin));
+    printf("[I] Simulation done in %f seconds\n", (double)(omp_get_wtime() - begin));
     exit_status = 0;
   } else {
     exit_status = EXIT_FAILURE;
@@ -191,8 +191,7 @@ double **computeAge(const model_data *const data,
         height += ((data->acc[age] * 31556926 * 100 - data->melt[age] * 100 -
                     (data->iceThickness[age] - data->iceThickness[age - 1])) *
                        functions->wDef((double)height, data->iceThickness[age],
-                                       data->mw) +
-                   data->melt[age] * 100);
+                                       data->mw) + data->melt[age] * 100);
         age--;
       }
       ageRel[h - 1][0] = h * 5;

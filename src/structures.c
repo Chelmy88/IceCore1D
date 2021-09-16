@@ -404,7 +404,7 @@ bool initModelFunctions(model_functions *functions,
   } else if (params->VERTICAL_PROFILE == VP_PA) {
     functions->wDef = &wDef_PA;
   } else {
-    functions->computeMelt = NULL;
+    functions->wDef = NULL;
     return false;
   }
 
@@ -413,7 +413,7 @@ bool initModelFunctions(model_functions *functions,
   } else if (params->INTERNAL_ENERGY == IE_OFF) {
     functions->setSe = &setSe_OFF;
   } else {
-    functions->computeMelt = NULL;
+    functions->setSe = NULL;
     return false;
   }
 
