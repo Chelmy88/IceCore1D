@@ -27,8 +27,6 @@
 #include "solver.h"
 #include "structures.h"
 #include <math.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -49,6 +47,13 @@ int main() {
   if (!initModelParameters(&params, "init.txt")) {
     deleteModelParameters(&params);
     printf("[E] Error reading the ini file. Exiting now\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Creating the output directories.
+  if (!createOutputDirs(&params)) {
+    deleteModelParameters(&params);
+    printf("[E] Error creating output directories. Exiting now\n");
     exit(EXIT_FAILURE);
   }
 
@@ -217,7 +222,6 @@ void saveData(const model_data *const data,
   // tempDiff/=(iceThickness[T-1]);
   //
   // // Generate a file name with the free parameters
-  printf("%s\n", "ENTERING SAVE");
 
   char fileName[400] = "";
   char path[400] = "";
@@ -236,16 +240,6 @@ void saveData(const model_data *const data,
           params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
           params->strings[SCHEME][params->SCHEME]);
   printf("1 %s", path);
-  //
-  // Check if the man export directory and the subdirectory are already existing
-  // and create them if missing
-  struct stat st = {0};
-  if (stat(params->OUTPUT_PATH, &st) == -1) {
-    mkdir(params->OUTPUT_PATH, 0700);
-  }
-  if (stat(path, &st) == -1) {
-    mkdir(path, 0700);
-  }
 
   // Save the temperature profile, the melt rate and the age scale
   sprintf(fileName, "%s.dat", "melt_rate");

@@ -283,19 +283,10 @@ bool setParameter(model_parameters *const params, const char *const arg,
 
   else if (strcmp(arg, "OUTPUT_PATH") == 0) {
     removeSpaces(val);
-    DIR *dir = opendir(val);
-    if (dir) {
-      params->OUTPUT_PATH = (char *)malloc(sizeof(char) * (strlen(val) + 1));
-      strcpy(params->OUTPUT_PATH, val);
-      closedir(dir);
-    } else if (ENOENT == errno) {
-      printf("[E] Wrong parameter %s for OUTPUT_PATH, directory not exist\n",
-             val);
-      return false;
-    } else {
-      printf("[E] Failed to open OUTPUT_PATH %s\n", val);
-      return false;
-    }
+    params->OUTPUT_PATH = (char *)malloc(sizeof(char) * (strlen(val) + 1));
+    strcpy(params->OUTPUT_PATH, val);
+
+
   }
 
   else if (strcmp(arg, "TEMPERATURE_FILE") == 0) {
@@ -838,8 +829,8 @@ bool checkParameter(model_parameters *const params) {
     printf("[W] Unset parameter FIRN, the default value of SC is used\n");
   }
   if (params->RHO_FIRN == RF_UNSET) {
-    params->RHO_FIRN = RHO_FIRN;
-    printf("[W] Unset parameter RHO_FIRN, the default value of FIRN is used\n");
+    params->RHO_FIRN = RF_HL;
+    printf("[W] Unset parameter RHO_FIRN, the default value of RF_HL is used\n");
   }
   if (params->VERTICAL_PROFILE == VP_UNSET) {
     params->VERTICAL_PROFILE = VP_FI;
@@ -911,4 +902,66 @@ void upper_string(char *s) {
     }
     ++c;
   }
+}
+
+bool checkOrCreateDir(char *const path)
+{
+  struct stat st = {0};
+  if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
+    if (! S_ISDIR(st.st_mode)) {
+      printf("[E] Impossible to create %s directory, path exist but is not a directory\n",
+      path);
+      return(false);
+    }
+    return(true);
+  }
+  if(mkdir(path, 0700)==-1)
+  {
+    printf("[E] Impossible to create %s directory\n", path);
+    return(false);
+ }
+  return(true);
+}
+
+
+
+
+bool createOutputDirs(model_parameters *const params)
+{
+  if(!checkOrCreateDir(params->OUTPUT_PATH))
+  {
+    return(false);
+  }
+  for (size_t mw = 0; mw < params->values.mw_n; mw++) {
+    for (size_t QG = 0; QG < params->values.QG_n; QG++) {
+      for (size_t Tcor = 0; Tcor < params->values.TCor_n; Tcor++) {
+        for (size_t Tcor2 = 0; Tcor2 < params->values.TCor2_n; Tcor2++) {
+          for (size_t Pcor = 0; Pcor < params->values.PCor_n; Pcor++) {
+            for (size_t deltaH = 0; deltaH < params->values.deltaH_n; deltaH++) {
+              for (size_t len = 0; len < params->values.len_n; len++) {
+                for (size_t flat = 0; flat < params->values.flat_n; flat++) {
+                  char path[400] = "";
+                  sprintf(path,
+                          "%s/"
+                          "m_%.3f_Q_%.2f_Pcor_%.0f_Tcor_%.1f_Tcor2_%.1f_dH_%.0f_len_%.0f_flat_%"
+                          ".0f_%s_Rho_Snow_%d_Thermal_Ice_%s_Thermal_Firn_%s_Heat_Capacity_%s_"
+                          "Rho_Firn_%s_"
+                          "Internal_Energy_%s_Scheme_%s",
+                          params->OUTPUT_PATH, params->values.mw[mw], params->values.QG[QG] * 1000,
+                          params->values.PCor[Pcor], params->values.TCor[Tcor], params->values.TCor2[Tcor2],
+                          params->values.deltaH[deltaH], params->values.len[len], params->values.flat[flat], "EDC",
+                          params->RHO_SNOW, params->strings[THERMAL_ICE][params->THERMAL_ICE],
+                          params->strings[THERMAL_FIRN][params->THERMAL_FIRN],
+                          params->strings[HEAT_CAPACITY][params->HEAT_CAPACITY],
+                          params->strings[RHO_FIRN][params->RHO_FIRN],
+                          params->strings[INTERNAL_ENERGY][params->INTERNAL_ENERGY],
+                          params->strings[SCHEME][params->SCHEME]);
+                printf("path %s\n", path);
+                  // Check if the man export directory and the subdirectory are already existing
+                if(!checkOrCreateDir(path))
+                {
+                  return(false);
+                }
+  }}}}}}}}
+  return(true);
 }

@@ -7,7 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <sys/stat.h>
+#include <sys/types.h>
 //*************File management functions*************
 
 bool readTable(double *table, const char *const fileName);
@@ -46,5 +47,9 @@ bool setParameter(model_parameters *const params, const char *const arg,
 bool checkParameter(model_parameters *const params);
 
 void upper_string(char *s);
+
+bool checkOrCreateDir(char *const path);
+
+bool createOutputDirs(model_parameters *const params);
 
 #endif /* !IO_H */
