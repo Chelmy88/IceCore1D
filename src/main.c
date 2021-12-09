@@ -74,6 +74,10 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
+  char path[120];
+  sprintf(path, "%s/init.txt", params.OUTPUT_PATH);
+  copyFile("init.txt", path);
+
   size_t exit_status;
   if (mainLoop(&params, &ts, &functions)) {
     printf("[I] Simulation done in %f seconds\n", (double)(omp_get_wtime() - begin));
@@ -162,9 +166,6 @@ bool mainLoop(model_parameters *params, time_series *ts,
       }
     }
   }
-  char path[120];
-  sprintf(path, "%s/init.txt", params->OUTPUT_PATH);
-  copyFile("init.txt", path);
   return succes;
 }
 
