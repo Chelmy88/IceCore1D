@@ -429,6 +429,8 @@ bool setParameter(model_parameters *const params, const char *const arg,
       params->THERMAL_FIRN = TF_SC_WE_ADD;
     } else if (strcmp(val, "SC_WE_LIN") == 0) {
       params->THERMAL_FIRN = TF_SC_WE_LIN;
+    } else if (strcmp(val, "NULL") == 0) {
+      params->THERMAL_FIRN = TF_NULL;
     } else {
       printf("[E] Unknown value %s for THERMAL_FIRN\n", val);
       return false;

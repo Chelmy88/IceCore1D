@@ -82,11 +82,15 @@ void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
 void setHeatVar(const model_functions *const functions, double *K, double *cp,
                 double *temperature, int thickness, double *rho,
                 double *rhoIce) {
+
+
   functions->setHeatCapacity(cp, rho, rhoIce, temperature, thickness);
 
   functions->setThermalIce(K, temperature, thickness);
 
-  functions->setThermalFirn(K, rho, rhoIce, cp, thickness, temperature);
+  if(functions->setThermalFirn){
+    functions->setThermalFirn(K, rho, rhoIce, cp, thickness, temperature);
+  }
 }
 
 void setThermalIce_CP(double *K, double *temperature, int thickness) {
@@ -348,10 +352,10 @@ void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m,
          (-rho[0] * cp0 * (tmelt - told0) / (2. * 31556926. * 100.) + diff);
     *tground = tmelt;
     *f = 0;
-    *m = 0;
   } else // If not enough energy is available, temperature stays at t_melt but
          // no ice is added
   {
+    *m = 0;
     *tground = tmelt;
     *f = 0;
   }
@@ -388,18 +392,19 @@ void computeMelt_FREEZING(double diff, double tmelt, double *m, double *tground,
 }
 
 double wDef_FI(double z, double thickness, double mw) {
+  const double zeta = z / thickness;
   if (mw == 0.5) {
-    return ((double)z / thickness) * sqrt((double)z / thickness);
+    return (zeta) * sqrt(zeta);
   } else {
     return pow(((double)z / thickness), (1 + mw));
   }
 }
 
 double wDef_PA(double z, double thickness, double mw) {
-  double p = mw;
-  return ((z / thickness) * 0 +
-          (1. - 0) * (1 - (p + 2) / (p + 1) * (1 - (z / thickness)) +
-                      1 / (p + 1) * pow(1 - (z / thickness), p + 2)));
+  const double p = mw;
+  const double zeta = z / thickness;
+  return (1 - (p + 2) / (p + 1) * (1 - zeta) +
+            1 / (p + 1) * pow(1 - zeta, p + 2));
 }
 // Compute the matrix element a and b used in explicit and CN scheme and the
 // velocity profile
@@ -411,9 +416,8 @@ void setABW(double *a, double *b, double *w, double *cp, double *K, double *rho,
   for (li = 0; li <= thickness; li++) {
     b[li] = delt * K[li] / (rho[li] * cp[li] * delz * delz);
     w[li] = -rhoIce[li] / rho[li] * (acc - m - dhdt) * w_def[li] - m;
-    a[li] =
-        delt / (delz * 2) *
-        (1 / (rho[li] * cp[li] * 2 * delz) * (K[li + 1] - K[li - 1]) - w[li]);
+    a[li] = delt / (delz * 2) *
+            (1 / (rho[li] * cp[li] * 2 * delz) * (K[li + 1] - K[li - 1]) - w[li]);
   }
 }
 
@@ -422,7 +426,7 @@ void setInternal(const model_functions *const functions, double *se,
                  int thickness, double *told, double dH, double *tborder,
                  int border, double len, double flat) {
   int li = 0;
-  int deltaH = (int)dH;
+  const int deltaH = (int)dH;
 
   // Internal energy production
   functions->setSe(se, rho, w, cp, thickness, told, delt);
@@ -474,7 +478,7 @@ void setSe_OFF(double *se, double *rho, double *w, double *cp, int thickness,
 // Linear piecewise approximation of the horizontal velocity vertical derivative
 // profile squared
 double getDudz(double zh) {
-  double us = 2.2594e-19;
+  const double us = 2.2594e-19;
   double dudz = 0;
   if (zh >= 0 && zh <= 0.05) {
     dudz = 1.942488E-06 - 1.952373E-05 * zh;

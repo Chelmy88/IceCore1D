@@ -89,6 +89,7 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[THERMAL_FIRN][TF_CP_WE_LIN] = "CP_WE_LIN";
   params->strings[THERMAL_FIRN][TF_SC_WE_ADD] = "SC_WE_ADD";
   params->strings[THERMAL_FIRN][TF_SC_WE_LIN] = "SC_WE_LIN";
+  params->strings[THERMAL_FIRN][NULL] = "NULL";
 
   params->strings[HEAT_CAPACITY][CP_CP] = "CP";
   params->strings[HEAT_CAPACITY][CP_CP_AL] = "CP_AL";
@@ -374,6 +375,8 @@ bool initModelFunctions(model_functions *functions,
     functions->setThermalFirn = &setThermalFirn_SC_WE_ADD;
   } else if (params->THERMAL_FIRN == TF_SC_WE_LIN) {
     functions->setThermalFirn = &setThermalFirn_SC_WE_LIN;
+  } else if (params->THERMAL_FIRN == TF_NULL) {
+    functions->setThermalFirn = NULL;
   } else {
     functions->setThermalFirn = NULL;
     return false;
