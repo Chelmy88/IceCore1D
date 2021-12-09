@@ -11,7 +11,7 @@ endif
 
 OPTIMFLAGS?=-O0 -Wall -Wextra
 
-CC= gcc-9
+CC=gcc-11
 LD=${CC}
 CFLAGS+= -std=c99 -fopenmp $(OPTIMFLAGS) $(PROFILEFLAGS)
 LDFLAGS+= -lm
