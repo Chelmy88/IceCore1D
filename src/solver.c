@@ -12,7 +12,7 @@
 // --> Ground temperature double K[Z]  --> Ice thermal conductivity double cp[Z]
 // --> Ice specific heat capacity double w[Z] --> Table used to store the
 // velocity profile double w_def[Z] --> Table used to store the flux shape
-// function values double delt=31556926.*100 --> Time step (100kyr) double
+// function values double delt=SEC_YEAR*100 --> Time step (100kyr) double
 // delz=1 -->  Height Step double tmelt --> Melt temperature computed with the
 // bottom pressure double dhdt  --> Thickness time derivative double se[Z]  -->
 // Internal heat (valley effect + internal heat production) power density
@@ -51,7 +51,7 @@ void spin_up(const model_functions *const functions,
   double a[Z], b[Z], a2[Z], b2[Z];
   double m, f, tground = 0;
   double K[Z], cp[Z], w[Z], w_def[Z];
-  double delt = 31556926. * 100.;
+  double delt = SEC_YEAR * 100.;
   double delz = 1.;
   double dhdt = 0;
   double se[Z];
@@ -118,7 +118,7 @@ void t_solve(const model_functions *const functions,
   double a[Z], b[Z], a2[Z], b2[Z];
   double m, f, tground = 0;
   double K[Z], cp[Z], w[Z], w_def[Z];
-  double delt = 31556926. * 100.;
+  double delt = SEC_YEAR * 100.;
   double delz = 1.;
   double dhdt = (thickFuture - thick) / delt;
   double se[Z];
@@ -139,7 +139,7 @@ void t_solve(const model_functions *const functions,
 
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
-    computeMelt(functions, &m, melt[time-1]/31556926., &tground, rho, L, K[1], cp[0], told[1], told[0],
+    computeMelt(functions, &m, melt[time-1]/SEC_YEAR, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
     setABW(a, b, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
            rhoIce);
@@ -153,7 +153,7 @@ void t_solve(const model_functions *const functions,
     }
     cp0 = cp[0];
     K1 = K[1];
-    melt[time] = m * 31556926.;
+    melt[time] = m * SEC_YEAR;
     freeze[time] = f;
 
     for (i = 0; i < (int)rep; i++) {
@@ -179,7 +179,7 @@ void t_solve(const model_functions *const functions,
     for (li = 0; li <= thickness; li++) {
       told[li] = tint[li];
     }
-    melt[time] += m * 31556926;
+    melt[time] += m * SEC_YEAR;
     melt[time] /= 2;
     freeze[time] += f;
     freeze[time] /= 2;
@@ -188,14 +188,14 @@ void t_solve(const model_functions *const functions,
   {
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
-    computeMelt(functions, &m, melt[time-1]/31556926., &tground, rho, L, K[1], cp[0], told[1], told[0],
+    computeMelt(functions, &m, melt[time-1]/SEC_YEAR, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
     setABW(a, b, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
            rhoIce);
     setInternal(functions, se, rho, w, cp, K, delt, thickness, told, deltaH,
                 tborder, border, len, flat);
     integrate_expl(told, a, b, tground, tsurf, tsurf_old, thickness, se);
-    melt[time] += m * 31556926;
+    melt[time] += m * SEC_YEAR;
     freeze[time] = f;
   }
 

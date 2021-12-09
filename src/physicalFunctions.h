@@ -35,10 +35,10 @@
 //*************Computational functions*************
 
 // Compute the density profile
-void setRho_HL(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
-               int thickness, double acc);
-void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
-                  double *temp, int thickness, double acc);
+void setRho_HL(const double rhoSnowConst, double *rho, double *rhoIce, const double *temp,
+               const int thickness, double acc);
+void setRho_CONST(const double rhoSnowConst, double *rho, double *rhoIce,
+                  const double *temp, const int thickness, double acc);
 
 // Compute the values of the K and c thermal variables, called by spin_up() and
 // t_solve()

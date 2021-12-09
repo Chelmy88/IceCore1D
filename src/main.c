@@ -189,7 +189,7 @@ double **computeAge(const model_data *const data,
       float height = h * 5;
       int age = a * 10 + ageCor;
       while (height < data->iceThickness[age] && age > 0) {
-        height += ((data->acc[age] * 31556926 * 100 - data->melt[age] * 100 -
+        height += ((data->acc[age] * SEC_YEAR * 100 - data->melt[age] * 100 -
                     (data->iceThickness[age] - data->iceThickness[age - 1])) *
                        functions->wDef((double)height, data->iceThickness[age],
                                        data->mw) + data->melt[age] * 100);

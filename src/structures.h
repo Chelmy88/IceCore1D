@@ -154,8 +154,8 @@ bool initModelData(model_data *data, const model_parameters *const params,
 void deleteModelData(model_data *data, const model_parameters *const params);
 
 typedef struct _model_functions {
-  void (*setRho)(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
-                 int thickness, double acc);
+  void (*setRho)(const double rhoSnowConst, double *rho, double *rhoIce, const double *temp,
+                 const int thickness, double acc);
   // Compute the density profile
 
   // Compute the values of the K and c thermal variables, called by spin_up()

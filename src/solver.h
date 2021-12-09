@@ -23,7 +23,7 @@
 // --> Ground temperature double K[Z]  --> Ice thermal conductivity double cp[Z]
 // --> Ice specific heat capacity double w[Z] --> Table used to store the
 // velocity profile double w_def[Z] --> Table used to store the flux shape
-// function values double delt=31556926.*100 --> Time step (100kyr) double
+// function values double delt=SEC_YEAR*100 --> Time step (100kyr) double
 // delz=1 -->  Height Step double tmelt --> Melt temperature computed with the
 // bottom pressure double dhdt  --> Thickness time derivative double se[Z]  -->
 // Internal heat (valley effect + internal heat production) power density

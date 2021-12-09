@@ -1,8 +1,7 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#define rhoSnow 350
-
+#define SEC_YEAR 31556926.
 typedef double real;
 
 #define UNUSED(x) (void)(x)

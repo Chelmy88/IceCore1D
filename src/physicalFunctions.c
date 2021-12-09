@@ -10,15 +10,15 @@ static const real K_eff_WE_delta[11] = {0.056, 0.023, 0.071, 0.154,
                                         0.027, 0.014, 0.000};
 //*************Computational functions*************
 
-void setRho_HL(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
-               int thickness, double acc) {
+void setRho_HL(const double rhoSnowConst, double *rho, double *rhoIce, const double *temp,
+               const int thickness, double acc) {
   const double rhoIceConst = 917;
   const double R = 8.3144;
   const double g = 9.81;
 
   const double k0 = 11 * exp(-10160 / (R * temp[thickness]));
   const double k1 = 575 * exp(-21400 / (R * temp[thickness]));
-  acc = acc * 31556926.;
+  acc = acc * SEC_YEAR;
   const real z55 = 1 / (rhoIceConst / 1000 * k0) *
                    (log(0.55 / (rhoIceConst / 1000 - 0.55)) -
                     log(rhoSnowConst / (rhoIceConst - rhoSnowConst)));
@@ -68,8 +68,8 @@ void setRho_HL(double rhoSnowConst, double *rho, double *rhoIce, double *temp,
   }
 }
 
-void setRho_CONST(double rhoSnowConst, double *rho, double *rhoIce,
-                  double *temp, int thickness, double acc) {
+void setRho_CONST(const double rhoSnowConst, double *rho, double *rhoIce,
+                  const double *temp, const int thickness, double acc) {
   UNUSED(rhoSnowConst);
   UNUSED(rhoIce);
   UNUSED(temp);
@@ -324,7 +324,7 @@ void computeMelt_FREE_MELT(double diff, double tmelt, double *m, double prev_mel
   if (diff > 0) // If enough energy is available to melt ice
   {
     *m = 1 /(rho[0] * (L - cp0 * (told0 - tmelt)) + cp0 * (tmelt - told1) / 2) *
-         (-rho[0] * cp0 * (tmelt - told0) / (2. * 31556926. * 100.) + diff);
+         (-rho[0] * cp0 * (tmelt - told0) / (2. * SEC_YEAR * 100.) + diff);
     *tground = tmelt;
     *f = 0;
   } else // If not enough energy is available, bottom temperature is decreased
@@ -349,7 +349,7 @@ void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m, double pr
   {
     *m = 1 /
          (rho[0] * (L - cp0 * (told0 - tmelt)) + cp0 * (tmelt - told1) / 2) *
-         (-rho[0] * cp0 * (tmelt - told0) / (2. * 31556926. * 100.) + diff);
+         (-rho[0] * cp0 * (tmelt - told0) / (2. * SEC_YEAR * 100.) + diff);
     *tground = tmelt;
     *f = 0;
   } else // If not enough energy is available, temperature stays at t_melt but
@@ -375,13 +375,13 @@ void computeMelt_FREEZING(double diff, double tmelt, double *m, double prev_melt
   {
     *m = 1 /
          (rho[0] * (L - cp0 * (told0 - tmelt)) + cp0 * (tmelt - told1) / 2) *
-         (-rho[0] * cp0 * (tmelt - told0) / (2. * 31556926. * 100.) + diff);
+         (-rho[0] * cp0 * (tmelt - told0) / (2. * SEC_YEAR * 100.) + diff);
     *tground = tmelt;
-    if (*m >= *f / 31556926.) {
-      *m -= *f / 31556926;
+    if (*m >= *f / SEC_YEAR) {
+      *m -= *f / SEC_YEAR;
       *f = 0;
     } else {
-      *f -= *m * 31556926;
+      *f -= *m * SEC_YEAR;
       *m = 0;
     }
   } else // If not enough energy is available, temperature stays at t_melt and
@@ -389,7 +389,7 @@ void computeMelt_FREEZING(double diff, double tmelt, double *m, double prev_melt
   {
     *m = 0;
     *tground = tmelt;
-    *f = diff / (rho[0] * L) * 31556926;
+    *f = diff / (rho[0] * L) * SEC_YEAR;
   }
 }
 

@@ -21,7 +21,7 @@ void runModel(model_data *data, const model_parameters *const params,
   for (li = 0; li < T; li++) {
     data->surfaceTemp[li] = ts->surfaceTempLoad[li];
     data->iceThickness[li] = ts->iceThicknessLoad[li];
-    data->acc[li] = ts->accLoad[li] * 3600 * 24 * 365 / 31556926;
+    data->acc[li] = ts->accLoad[li] * 3600 * 24 * 365 / SEC_YEAR;
     // surfaceTemp[li]=surfaceTemp[li]+(iceThicknessLoad[T-1]-iceThicknessLoad[li])/100;
   }
   data->iceThickness[T] = data->iceThickness[T - 1];
@@ -43,7 +43,7 @@ void runModel(model_data *data, const model_parameters *const params,
       }
     }
     data->acc[li] += data->acc[li] * data->pCor / 100.;
-    data->acc2[li] = data->acc[li] * 31556926;
+    data->acc2[li] = data->acc[li] * SEC_YEAR;
   }
   // set the initial temperature profile
   real Tmelt = 273.16 - 9.8 * 7.42 * 1E-8 * 921 * data->iceThickness[0];
