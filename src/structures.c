@@ -89,7 +89,7 @@ bool initModelParameters(model_parameters *params, char *fileName) {
   params->strings[THERMAL_FIRN][TF_CP_WE_LIN] = "CP_WE_LIN";
   params->strings[THERMAL_FIRN][TF_SC_WE_ADD] = "SC_WE_ADD";
   params->strings[THERMAL_FIRN][TF_SC_WE_LIN] = "SC_WE_LIN";
-  params->strings[THERMAL_FIRN][NULL] = "NULL";
+  params->strings[THERMAL_FIRN][TF_NULL] = "NULL";
 
   params->strings[HEAT_CAPACITY][CP_CP] = "CP";
   params->strings[HEAT_CAPACITY][CP_CP_AL] = "CP_AL";
