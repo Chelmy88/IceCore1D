@@ -63,7 +63,7 @@ void spin_up(const model_functions *const functions,
 
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
-    computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
+    computeMelt(functions, &m, 0, &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
     told[0] = tground;
     setABW(a, b, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
@@ -78,7 +78,7 @@ void spin_up(const model_functions *const functions,
     // Second pass
     functions->setRho(params->RHO_SNOW, rho, rhoIce, tint, thickness, acc);
     setHeatVar(functions, K, cp, tint, thickness, rho, rhoIce);
-    computeMelt(functions, &m, &tground, rho_first, L, K[1], cp[0], tint[1],
+    computeMelt(functions, &m, m, &tground, rho_first, L, K[1], cp[0], tint[1],
                 tint[0], thick, delz, QG, &f);
     tint[0] = tground;
     setABW(a2, b2, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
@@ -139,7 +139,7 @@ void t_solve(const model_functions *const functions,
 
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
-    computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
+    computeMelt(functions, &m, melt[time-1]/31556926., &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
     setABW(a, b, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
            rhoIce);
@@ -162,7 +162,7 @@ void t_solve(const model_functions *const functions,
       for (li = 0; li <= thickness; li++) {
         rho_mean[li] = (rho[li] + rho_first[li]) / 2;
       }
-      computeMelt(functions, &m, &tground, rho_mean, L, (K[1] + K1) / 2,
+      computeMelt(functions, &m, m, &tground, rho_mean, L, (K[1] + K1) / 2,
                   (cp[0] + cp0) / 2, (tint[1] + told[1]) / 2,
                   (tint[0] + told[0]) / 2, thick, delz, QG, &f);
       tint[0] = tground;
@@ -188,7 +188,7 @@ void t_solve(const model_functions *const functions,
   {
     functions->setRho(params->RHO_SNOW, rho, rhoIce, told, thickness, acc);
     setHeatVar(functions, K, cp, told, thickness, rho, rhoIce);
-    computeMelt(functions, &m, &tground, rho, L, K[1], cp[0], told[1], told[0],
+    computeMelt(functions, &m, melt[time-1]/31556926., &tground, rho, L, K[1], cp[0], told[1], told[0],
                 thick, delz, QG, &f);
     setABW(a, b, w, cp, K, rho, delt, delz, acc, m, dhdt, w_def, thickness,
            rhoIce);

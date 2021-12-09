@@ -97,23 +97,24 @@ void setThermalFirn_SC_WE_ADD(double *K, double *rho, double *rhoIce,
 void setThermalFirn_SC_WE_LIN(double *K, double *rho, double *rhoIce,
                               double *cp, int thickness, double *temperature);
 
-void computeMelt(const model_functions *const functions, double *m,
+void computeMelt(const model_functions *const functions, double *m,  double prev_melt,
                  double *tground, double *rho, double L, double K0, double cp0,
                  double told1, double told0, double thickness, double delz,
                  double QG, double *f);
 
-void computeMelt_FREE_MELT(double diff, double tmelt, double *m,
+void computeMelt_FREE_MELT(double diff, double tmelt, double *m, double prev_melt,
                            double *tground, double *rho, double L, double K0,
                            double cp0, double told1, double told0, double delz,
                            double QG, double *f);
-void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m,
+void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m, double prev_melt,
                                  double *tground, double *rho, double L,
                                  double K0, double cp0, double told1,
                                  double told0, double delz, double QG,
                                  double *f);
-void computeMelt_FREEZING(double diff, double tmelt, double *m, double *tground,
-                          double *rho, double L, double K0, double cp0,
-                          double told1, double told0, double delz, double QG,
+void computeMelt_FREEZING(double diff, double tmelt, double *m, double prev_melt,
+                          double *tground, double *rho, double L,
+                          double K0, double cp0, double told1,
+                          double told0, double delz, double QG,
                           double *f);
 
 // Compute the flux shape function values, called by spin_up() and t_solve()

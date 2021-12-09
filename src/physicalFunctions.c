@@ -298,7 +298,7 @@ void setHeatCapacity_CP_AL(double *cp, double *rho, double *rhoIce,
   }
 }
 
-void computeMelt(const model_functions *const functions, double *m,
+void computeMelt(const model_functions *const functions, double *m, double prev_melt,
                  double *tground, double *rho, double L, double K0, double cp0,
                  double told1, double told0, double thick, double delz,
                  double QG, double *f) {
@@ -313,18 +313,17 @@ void computeMelt(const model_functions *const functions, double *m,
   tmelt = 273.16 - 7.2 * pow(10, -8) * (pressure)*9.8;
   double diff = QG + K0 * (told1 - tmelt) / delz;
 
-  functions->computeMelt(diff, tmelt, m, tground, rho, L, K0, cp0, told1, told0,
+  functions->computeMelt(diff, tmelt, m, prev_melt, tground, rho, L, K0, cp0, told1, told0,
                          delz, QG, f);
 }
 
-void computeMelt_FREE_MELT(double diff, double tmelt, double *m,
+void computeMelt_FREE_MELT(double diff, double tmelt, double *m, double prev_melt,
                            double *tground, double *rho, double L, double K0,
                            double cp0, double told1, double told0, double delz,
                            double QG, double *f) {
   if (diff > 0) // If enough energy is available to melt ice
   {
-    *m = 1 /
-         (rho[0] * (L - cp0 * (told0 - tmelt)) + cp0 * (tmelt - told1) / 2) *
+    *m = 1 /(rho[0] * (L - cp0 * (told0 - tmelt)) + cp0 * (tmelt - told1) / 2) *
          (-rho[0] * cp0 * (tmelt - told0) / (2. * 31556926. * 100.) + diff);
     *tground = tmelt;
     *f = 0;
@@ -336,7 +335,7 @@ void computeMelt_FREE_MELT(double diff, double tmelt, double *m,
   }
 }
 
-void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m,
+void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m, double prev_melt,
                                  double *tground, double *rho, double L,
                                  double K0, double cp0, double told1,
                                  double told0, double delz, double QG,
@@ -344,6 +343,7 @@ void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m,
   UNUSED(K0);
   UNUSED(delz);
   UNUSED(QG);
+  UNUSED(prev_melt);
 
   if (diff > 0) // If enough energy is available to melt ice
   {
@@ -361,13 +361,15 @@ void computeMelt_FREEZING_NO_ICE(double diff, double tmelt, double *m,
   }
 }
 
-void computeMelt_FREEZING(double diff, double tmelt, double *m, double *tground,
-                          double *rho, double L, double K0, double cp0,
-                          double told1, double told0, double delz, double QG,
+void computeMelt_FREEZING(double diff, double tmelt, double *m, double prev_melt,
+                          double *tground, double *rho, double L,
+                          double K0, double cp0, double told1,
+                          double told0, double delz, double QG,
                           double *f) {
   UNUSED(K0);
   UNUSED(delz);
   UNUSED(QG);
+  UNUSED(prev_melt);
 
   if (diff > 0) // If enough energy is available to melt ice
   {

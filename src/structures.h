@@ -166,10 +166,10 @@ typedef struct _model_functions {
   void (*setHeatCapacity)(double *cp, double *rho, double *rhoIce,
                           double *temperature, int thickness);
 
-  void (*computeMelt)(double diff, double tmelt, double *m, double *tground,
-                      double *rho, double L, double K0, double cp0,
-                      double told1, double told0, double delz, double QG,
-                      double *f);
+  void (*computeMelt)(double diff, double tmelt, double *m, double prev_melt,
+                      double *tground, double *rho, double L, double K0,
+                      double cp0, double told1, double told0, double delz,
+                      double QG, double *f);
   // Compute the melt rate, called by spin_up() and t_solve()
 
   double (*wDef)(double z, double thickness, double mw);
